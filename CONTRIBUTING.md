@@ -133,6 +133,51 @@ Si tienes dudas sobre cómo contribuir:
 
 ---
 
+## 🔒 Rama Main Protegida
+
+⚠️ **IMPORTANTE:** La rama `main` está protegida. No se puede hacer push directo.
+
+### Workflow Obligatorio:
+
+1. **Crear rama de feature:**
+   ```bash
+   git checkout main
+   git pull origin main
+   git checkout -b feature/nombre-descriptivo
+   ```
+
+2. **Hacer cambios:**
+   ```bash
+   git add .
+   git commit -m "feat: descripción"
+   ```
+
+3. **Subir rama:**
+   ```bash
+   git push -u origin feature/nombre-descriptivo
+   ```
+
+4. **Crear Pull Request en GitHub:**
+   - Ve al repositorio en GitHub
+   - Haz clic en "Compare & pull request"
+   - Describe los cambios
+   - Espera aprobación y merge
+
+5. **Actualizar local después del merge:**
+   ```bash
+   git checkout main
+   git pull origin main
+   git branch -d feature/nombre-descriptivo
+   ```
+
+### ❌ Esto Fallará:
+```bash
+git push origin main
+# Error: protected branch
+```
+
+---
+
 ## 🚀 Configuración de Git
 
 ### Primer Commit

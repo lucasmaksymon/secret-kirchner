@@ -1,0 +1,135 @@
+<div class="voting-container" *ngIf="gameState$ | async as gameState">
+  <!-- Solapas de información del tablero -->
+  <div class="board-info-tabs">
+    <div class="info-tab" (mouseenter)="showTab('policies')" (mouseleave)="hideTab()">
+      <div class="tab-trigger">
+        📊 Políticas
+      </div>
+      <div class="tab-content" [class.active]="activeTab === 'policies'">
+        <div class="policies-mini">
+          <div class="policy-mini libertario">
+            <span class="mini-label">🦅 Libertarios</span>
+            <span class="mini-count">{{ gameState.libertarianPolicies }}/5</span>
+          </div>
+          <div class="policy-mini kirchnerista">
+            <span class="mini-label">✊ Kirchneristas</span>
+            <span class="mini-count">{{ gameState.kirchneristaPolicies }}/6</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="info-tab" (mouseenter)="showTab('players')" (mouseleave)="hideTab()">
+      <div class="tab-trigger">
+        👥 Jugadores
+      </div>
+      <div class="tab-content" [class.active]="activeTab === 'players'">
+        <div class="players-mini">
+          <div class="stat-mini">💚 {{ getAlivePlayers(gameState) }} Vivos</div>
+          <div class="stat-mini">💀 {{ getDeadPlayers(gameState) }} Muertos</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="info-tab" (mouseenter)="showTab('rejections')" (mouseleave)="hideTab()">
+      <div class="tab-trigger">
+        🗳️ Rechazos
+      </div>
+      <div class="tab-content" [class.active]="activeTab === 'rejections'">
+        <div class="rejections-mini">
+          <span class="mini-label">Gobiernos rechazados:</span>
+          <span class="mini-count" [class.danger]="gameState.failedGovernments >= 2">
+            {{ gameState.failedGovernments }}/3
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div class="info-tab" (mouseenter)="showTab('deck')" (mouseleave)="hideTab()">
+      <div class="tab-trigger">
+        🃏 Mazo
+      </div>
+      <div class="tab-content" [class.active]="activeTab === 'deck'">
+        <div class="deck-mini">
+          <div class="stat-mini">📚 {{ gameState.deckSize }} en mazo</div>
+          <div class="stat-mini">🗑️ {{ gameState.discardSize }} descartadas</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+  <h3 class="text-center">🗳️ Votación del Gobierno</h3>
+
+  <div class="government-proposal">
+    <div class="proposal-header">
+      <h4>Gobierno Propuesto:</h4>
+    </div>
+    <div class="government-roles">
+      <div class="role-item">
+        <span class="role-icon">🎩</span>
+        <div class="role-info">
+          <span class="role-label">Presidente</span>
+          <span class="role-name">{{ getPresident() }}</span>
+        </div>
+      </div>
+      <div class="connector">+</div>
+      <div class="role-item">
+        <span class="role-icon">💼</span>
+        <div class="role-info">
+          <span class="role-label">Jefe de Gabinete</span>
+          <span class="role-name">{{ getNominatedCabinetChief() }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="voting-instructions text-center mt-3">
+    <p *ngIf="canVote()">
+      💡 <strong>¿Confías en este gobierno?</strong>
+    </p>
+    <p *ngIf="canVote()">
+      Votá "¡Vamos!" para aprobar o "¡Rajá!" para rechazar
+    </p>
+    <p *ngIf="hasVoted" class="text-success">
+      ✅ Tu voto ha sido registrado. Esperando a los demás jugadores...
+    </p>
+  </div>
+
+  <div class="vote-buttons" *ngIf="canVote() && !hasVoted">
+    <button 
+      class="vote-btn ja-btn"
+      (click)="vote(true)"
+    >
+      <span class="vote-icon">✊</span>
+      <span class="vote-text">¡Vamos!</span>
+      <span class="vote-subtitle">(Aprobar)</span>
+    </button>
+
+    <button 
+      class="vote-btn nein-btn"
+      (click)="vote(false)"
+    >
+      <span class="vote-icon">🚫</span>
+      <span class="vote-text">¡Rajá!</span>
+      <span class="vote-subtitle">(Rechazar)</span>
+    </button>
+  </div>
+
+  <div *ngIf="hasVoted" class="vote-status mt-3">
+    <div class="voted-indicator" [class.vote-yes]="selectedVote" [class.vote-no]="!selectedVote">
+      <span class="indicator-icon">
+        {{ selectedVote ? '✊' : '🚫' }}
+      </span>
+      <span class="indicator-text">
+        Votaste: <strong>{{ selectedVote ? '¡Vamos!' : '¡Rajá!' }}</strong>
+      </span>
+    </div>
+  </div>
+
+  <div class="voting-info mt-3 text-center text-muted">
+    <p>ℹ️ Los votos se revelarán cuando todos hayan votado</p>
+    <p>Se necesita mayoría simple para aprobar el gobierno</p>
+  </div>
+</div>
+

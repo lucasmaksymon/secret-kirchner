@@ -1,0 +1,159 @@
+<div class="game-container" *ngIf="gameState">
+  <!-- Role Reveal Modal -->
+  <div class="role-reveal-modal" *ngIf="showRoleReveal && currentRole">
+    <div class="modal-overlay"></div>
+    <div class="modal-content card">
+      <h2>Tu Rol Secreto</h2>
+      <div 
+        class="role-badge"
+        [class.libertario]="currentRole.team === 'libertarios'"
+        [class.kirchnerista]="currentRole.team === 'kirchneristas'"
+      >
+        <div class="role-icon">
+          {{ currentRole.type === 'el_jefe' ? '👤' : currentRole.team === 'libertarios' ? '🦅' : '✊' }}
+        </div>
+        <h3>
+          {{ currentRole.type === 'el_jefe' ? 'EL JEFE' : getRoleTeamName() }}
+        </h3>
+        <p>{{ getRoleDescription() }}</p>
+      </div>
+
+      <div *ngIf="knownPlayers.length > 0" class="known-players mt-3">
+        <h4>Jugadores que conocés:</h4>
+        <div class="known-player-list">
+          <div *ngFor="let player of knownPlayers" class="known-player-item">
+            <span class="player-name">{{ player.name }}</span>
+            <span class="player-role" [class.kirchnerista]="player.role !== 'libertario'">
+              {{ player.role === 'el_jefe' ? '👤 El Jefe' : '✊ Kirchnerista' }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <p class="text-muted mt-3">Este mensaje desaparecerá en unos segundos...</p>
+    </div>
+  </div>
+
+  <!-- Main Game Interface -->
+  <div class="game-layout">
+    <!-- Header -->
+    <div class="game-header" [ngClass]="getTeamClass()">
+      <div class="header-content">
+        <h2>🎮 {{ gameState.roomName }}</h2>
+        <div class="team-indicator" *ngIf="currentRole">
+          <span class="team-badge">{{ getTeamName() }}</span>
+        </div>
+        <div class="phase-indicator">
+          {{ getPhaseTitle() }}
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="game-content">
+      <div class="game-grid">
+        <!-- Left Column: Board, Players and Actions -->
+        <div class="main-column">
+          <app-board></app-board>
+
+          <app-player-list></app-player-list>
+
+          <!-- Phase-specific content -->
+          <div class="phase-content" *ngIf="gameState.phase === 'game_over'">
+            <app-game-over
+              *ngIf="gameState.phase === 'game_over'"
+            ></app-game-over>
+          </div>
+        </div>
+
+        <!-- Right Column: Voice Chat and Chat -->
+        <div class="side-column">
+          <div class="voice-chat-wrapper">
+            <app-voice-chat 
+              *ngIf="gameState"
+              [roomId]="gameState.roomId"
+              [playerId]="currentPlayerId || ''"
+            ></app-voice-chat>
+          </div>
+          <app-chat></app-chat>
+        </div>
+      </div>
+    </div>
+
+    <!-- Voting Modal -->
+    <div class="voting-modal" *ngIf="gameState.phase === 'election'">
+      <div class="modal-overlay"></div>
+      <div class="modal-dialog">
+        <div class="modal-split">
+          <div class="modal-voting">
+            <app-voting></app-voting>
+          </div>
+          <div class="modal-sidebar">
+            <div class="voice-chat-wrapper">
+              <app-voice-chat 
+                *ngIf="gameState"
+                [roomId]="gameState.roomId"
+                [playerId]="currentPlayerId || ''"
+              ></app-voice-chat>
+            </div>
+            <div class="modal-chat">
+              <h4>💬 Chat</h4>
+              <app-chat></app-chat>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Policy Cards Modal -->
+    <div class="policy-modal" *ngIf="gameState.phase === 'legislative_president' || gameState.phase === 'legislative_cabinet'">
+      <div class="modal-overlay"></div>
+      <div class="modal-dialog">
+        <div class="modal-split">
+          <div class="modal-content-area">
+            <app-policy-cards></app-policy-cards>
+          </div>
+          <div class="modal-sidebar">
+            <div class="voice-chat-wrapper">
+              <app-voice-chat 
+                *ngIf="gameState"
+                [roomId]="gameState.roomId"
+                [playerId]="currentPlayerId || ''"
+              ></app-voice-chat>
+            </div>
+            <div class="modal-chat">
+              <h4>💬 Chat</h4>
+              <app-chat></app-chat>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Executive Power Modal -->
+    <div class="executive-power-modal" *ngIf="gameState.phase === 'executive_power'">
+      <div class="modal-overlay"></div>
+      <div class="modal-dialog">
+        <div class="modal-split">
+          <div class="modal-content-area">
+            <app-executive-power></app-executive-power>
+          </div>
+          <div class="modal-sidebar">
+            <div class="voice-chat-wrapper">
+              <app-voice-chat 
+                *ngIf="gameState"
+                [roomId]="gameState.roomId"
+                [playerId]="currentPlayerId || ''"
+              ></app-voice-chat>
+            </div>
+            <div class="modal-chat">
+              <h4>💬 Chat</h4>
+              <app-chat></app-chat>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+

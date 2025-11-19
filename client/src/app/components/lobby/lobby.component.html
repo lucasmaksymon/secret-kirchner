@@ -1,0 +1,185 @@
+<div class="lobby-container">
+  <div *ngIf="!gameState" style="padding: 40px; text-align: center;">
+    <h2>⏳ Cargando lobby...</h2>
+    <p>Esperando datos del servidor...</p>
+  </div>
+
+  <div *ngIf="gameState">
+    <!-- Mensaje de notificación -->
+    <div *ngIf="lastMessage" class="notification-message">
+      {{ lastMessage }}
+    </div>
+
+    <div class="header">
+      <div class="header-left">
+        <h1>🏛️ {{ gameState.roomName }}</h1>
+        <p class="room-id">ID: <strong>{{ gameState.roomId }}</strong></p>
+      </div>
+      
+      <div class="header-actions">
+        <button class="btn btn-secondary btn-sm" (click)="copyRoomLink()">
+          📋 Copiar
+        </button>
+        
+        <button 
+          *ngIf="isHost()"
+          class="btn btn-success"
+          [disabled]="!canStartGame()"
+          (click)="startGame()"
+          [title]="!canStartGame() ? (gameState.players.length < 5 ? 'Se necesitan mínimo 5 jugadores' : 'Máximo 10 jugadores') : ''"
+        >
+          🚀 Iniciar
+        </button>
+        
+        <button 
+          class="btn btn-danger"
+          (click)="leaveLobby()"
+        >
+          🚪 Salir
+        </button>
+      </div>
+    </div>
+
+    <div class="lobby-content">
+      <div class="players-section card">
+        <h2>
+          👥 Jugadores ({{ gameState.players.length }}/10)
+        </h2>
+
+        <div class="player-count-info text-center">
+          <p class="text-muted">
+            Se necesitan entre 5 y 10 jugadores para comenzar
+          </p>
+          <div class="progress-bar">
+            <div 
+              class="progress-fill"
+              [style.width.%]="(gameState.players.length / 10) * 100"
+            ></div>
+          </div>
+        </div>
+        
+        <!-- Botón para agregar IA - Ahora arriba -->
+        <div *ngIf="gameState.players.length < 10" class="add-ai-section">
+          <h4>🤖 Agregar Jugadores IA</h4>
+          
+          <div *ngIf="isHost()" class="ai-buttons">
+            <button class="btn btn-sm btn-secondary" (click)="addAI('easy')">
+              + IA Fácil
+            </button>
+            <button class="btn btn-sm btn-primary" (click)="addAI('medium')">
+              + IA Media
+            </button>
+            <button class="btn btn-sm btn-danger" (click)="addAI('hard')">
+              + IA Difícil
+            </button>
+          </div>
+          
+          <div *ngIf="!isHost()" style="padding: 10px; background: #fff3cd; border-radius: 4px;">
+            <p style="color: #856404; font-size: 14px; margin: 0;">
+              ℹ️ Solo el host puede agregar IAs
+            </p>
+          </div>
+        </div>
+        
+        <!-- Lista de jugadores con scroll -->
+        <div class="players-list">
+          <div 
+            *ngFor="let player of gameState.players"
+            class="player-item"
+            [class.is-host]="player.id === gameState.hostId"
+            [class.is-current]="player.id === currentPlayerId"
+            [class.is-ai]="player.isAI"
+          >
+            <span class="player-name">
+              {{ player.name }}
+              <span *ngIf="player.isAI" class="ai-badge">🤖 IA</span>
+              <span *ngIf="player.id === gameState.hostId" class="host-badge">👑 Host</span>
+              <span *ngIf="player.id === currentPlayerId" class="you-badge">Tu</span>
+            </span>
+            <span class="player-actions">
+              <button 
+                *ngIf="player.isAI && isHost()" 
+                class="btn-remove-ai"
+                (click)="removeAI(player.id)"
+                title="Remover IA"
+              >
+                ❌
+              </button>
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div class="info-section">
+        <!-- Voice Chat -->
+        <div class="voice-chat-section card">
+          <h3>🎤 Chat de Voz</h3>
+          <app-voice-chat 
+            [roomId]="gameState.roomId"
+            [playerId]="currentPlayerId || ''"
+          ></app-voice-chat>
+        </div>
+
+        <div class="accordion-item">
+          <div class="accordion-header" (click)="toggleAccordion('rules')">
+            <span class="accordion-title">📜 Reglas Rápidas</span>
+            <span class="accordion-icon">{{ accordionStates.rules ? '▼' : '▶' }}</span>
+          </div>
+          <div class="accordion-content" [class.open]="accordionStates.rules">
+            <ul class="rules-list">
+              <li>
+                <strong>Libertarios:</strong> Equipo democrático (azul). 
+                Deben aprobar 5 decretos libertarios o eliminar a El Jefe.
+              </li>
+              <li>
+                <strong>Kirchneristas:</strong> Equipo secreto (violeta). 
+                Deben aprobar 6 decretos kirchneristas o elegir a El Jefe como Jefe de Gabinete 
+                después de 3 decretos kirchneristas.
+              </li>
+              <li>
+                <strong>El Jefe:</strong> Líder secreto de los Kirchneristas. 
+                Los Kirchneristas lo conocen, pero los Libertarios no.
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="accordion-item">
+          <div class="accordion-header" (click)="toggleAccordion('flow')">
+            <span class="accordion-title">🎯 Flujo del Juego</span>
+            <span class="accordion-icon">{{ accordionStates.flow ? '▼' : '▶' }}</span>
+          </div>
+          <div class="accordion-content" [class.open]="accordionStates.flow">
+            <ol class="game-flow-list">
+              <li>Se revelan los roles secretamente</li>
+              <li>El Presidente nomina un Jefe de Gabinete</li>
+              <li>Todos votan "¡Vamos!" (sí) o "¡Rajá!" (no)</li>
+              <li>Si se aprueba, el gobierno legisla</li>
+              <li>Presidente elige 2 de 3 decretos</li>
+              <li>Jefe de Gabinete elige 1 de 2 para promulgar</li>
+              <li>Poderes presidenciales según decretos kirchneristas</li>
+            </ol>
+          </div>
+        </div>
+
+        <div class="accordion-item">
+          <div class="accordion-header" (click)="toggleAccordion('powers')">
+            <span class="accordion-title">💼 Poderes Presidenciales</span>
+            <span class="accordion-icon">{{ accordionStates.powers ? '▼' : '▶' }}</span>
+          </div>
+          <div class="accordion-content" [class.open]="accordionStates.powers">
+            <ul class="powers-list">
+              <li>📊 <strong>Intervenir INDEC:</strong> Ver próximas 3 cartas</li>
+              <li>🕵️ <strong>Investigar con AFIP:</strong> Ver lealtad de un jugador</li>
+              <li>🏛️ <strong>Sesión Especial:</strong> Elegir próximo Presidente</li>
+              <li>💀 <strong>Operación Traslado:</strong> Eliminar a un jugador</li>
+              <li>🚫 <strong>Veto Presidencial:</strong> Rechazar ambas cartas (después de 5 decretos K)</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+

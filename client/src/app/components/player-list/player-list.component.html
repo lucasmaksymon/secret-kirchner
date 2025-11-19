@@ -1,0 +1,68 @@
+<div class="player-list-container" *ngIf="gameState$ | async as gameState">
+  <h3>👥 Jugadores ({{ gameState.players.length }})</h3>
+
+  <div class="players-list">
+    <div 
+      *ngFor="let player of gameState.players"
+      class="player-item"
+      [class.is-president]="isPresident(player)"
+      [class.is-cabinet-chief]="isCabinetChief(player)"
+      [class.is-nominated]="isNominated(player)"
+      [class.is-dead]="player.isDead"
+      [class.is-current]="isCurrentPlayer(player)"
+      [class.is-known]="isKnownPlayer(player) && !isCurrentPlayer(player)"
+      [class.can-nominate]="canNominate() && !player.isDead && !isCurrentPlayer(player)"
+      [ngClass]="isCurrentPlayer(player) ? 'is-current-' + getCurrentPlayerTeamClass() : ''"
+      (click)="nominatePlayer(player)"
+    >
+      <div class="player-info">
+        <div class="player-name">
+          {{ player.name }}
+          <span *ngIf="isCurrentPlayer(player)" class="badge you-badge">Vos</span>
+          <span *ngIf="isKnownPlayer(player) && !isCurrentPlayer(player)" 
+                class="badge known-badge"
+                [ngClass]="getKnownPlayerBadgeClass(player)">
+            <span *ngIf="getKnownPlayerRole(player) === 'el_jefe'">👤 El Jefe</span>
+            <span *ngIf="getKnownPlayerRole(player) === 'kirchnerista'">✊ Kirchnerista</span>
+          </span>
+        </div>
+        
+        <div class="player-badges">
+          <span *ngIf="isPresident(player)" class="badge president-badge">
+            🎩 Presidente
+          </span>
+          <span *ngIf="isCabinetChief(player)" class="badge cabinet-badge">
+            💼 Jefe de Gabinete
+          </span>
+          <span *ngIf="isNominated(player)" class="badge nominated-badge">
+            📝 Nominado
+          </span>
+          <span *ngIf="player.isDead" class="badge dead-badge">
+            💀 Eliminado
+          </span>
+          <span *ngIf="player.wasInvestigated" class="badge investigated-badge">
+            🕵️ Investigado
+          </span>
+        </div>
+      </div>
+
+      <div class="player-actions" *ngIf="canNominate() && !player.isDead && !isCurrentPlayer(player)">
+        <button class="btn-nominate">
+          Nominar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="player-counts mt-3">
+    <div class="count-item">
+      <span class="count-label">Vivos:</span>
+      <span class="count-value">{{ getAlivePlayers() }}</span>
+    </div>
+    <div class="count-item">
+      <span class="count-label">Eliminados:</span>
+      <span class="count-value">{{ getDeadPlayers() }}</span>
+    </div>
+  </div>
+</div>
+

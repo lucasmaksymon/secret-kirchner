@@ -1,0 +1,388 @@
+.board-container {
+  padding: 12px !important;
+  flex-shrink: 0;
+  height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  transition: none !important;
+  transform: none !important;
+
+  &:hover {
+    transform: none !important;
+    box-shadow: none !important;
+  }
+
+  .mb-1 {
+    margin-bottom: 12px !important;
+  }
+}
+
+// Desactivar efectos hover en todas las cartas internas
+.board-container .info-card,
+.board-container .policy-track,
+.board-container .election-marker,
+.board-container .government-item,
+.board-container .stat-item,
+.board-container .policy-slot {
+  transition: none !important;
+  
+  &:hover {
+    transform: none !important;
+    box-shadow: inherit !important;
+  }
+}
+
+.board-layout {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 20px;
+  height: 100%;
+  width: 100%;
+  flex: 1;
+}
+
+.info-row-top {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.info-card {
+  padding: 14px;
+  background: var(--color-bg-tertiary);
+  border-radius: 12px;
+  border: 2px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+
+  h4 {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    text-align: center;
+  }
+}
+
+.policies-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.players-status-compact,
+.government-compact,
+.deck-compact {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+}
+
+.policy-track {
+  padding: 18px;
+  border-radius: 12px;
+  border: 2px solid;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+
+  &.libertario-track {
+    background: linear-gradient(135deg, rgba(74, 144, 226, 0.1) 0%, rgba(74, 144, 226, 0.05) 100%);
+    border-color: var(--color-libertario);
+  }
+
+  &.kirchnerista-track {
+    background: linear-gradient(135deg, rgba(155, 89, 182, 0.1) 0%, rgba(155, 89, 182, 0.05) 100%);
+    border-color: var(--color-kirchnerista);
+  }
+
+  .track-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+
+    h4 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .track-count {
+      font-size: 16px;
+      font-weight: 700;
+      padding: 6px 12px;
+      background: var(--color-bg-tertiary);
+      border-radius: 8px;
+      border: 2px solid var(--color-border);
+    }
+  }
+
+  .policy-slots {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 0;
+  }
+
+  .policy-slot {
+    flex: 1;
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    font-size: 24px;
+    font-weight: 700;
+    border: 2px solid;
+    min-height: 50px;
+    position: relative;
+    transition: none;
+    cursor: default;
+
+    &.empty {
+      background: var(--color-bg-tertiary);
+      border-color: var(--color-border);
+      opacity: 0.4;
+
+      &.has-power {
+        border-color: var(--color-warning);
+        border-width: 2px;
+        border-style: dashed;
+        opacity: 0.6;
+
+        .power-indicator {
+          font-size: 28px;
+          opacity: 0.5;
+        }
+      }
+    }
+
+    &.filled {
+      &.libertario {
+        background: var(--color-libertario);
+        border-color: var(--color-libertario);
+        color: white;
+        box-shadow: 0 4px 12px rgba(74, 144, 226, 0.4);
+      }
+
+      &.kirchnerista {
+        background: var(--color-kirchnerista);
+        border-color: var(--color-kirchnerista);
+        color: white;
+        box-shadow: 0 4px 12px rgba(155, 89, 182, 0.4);
+
+        &.critical {
+          box-shadow: 0 0 30px var(--color-warning);
+        }
+
+        &.has-power {
+          border-color: var(--color-warning);
+          border-width: 3px;
+          box-shadow: 0 0 20px var(--color-warning), 0 4px 12px rgba(155, 89, 182, 0.4);
+
+          .power-icon {
+            font-size: 28px;
+            animation: pulse 2s infinite;
+          }
+        }
+      }
+    }
+  }
+
+  @keyframes pulse {
+    0%, 100% { 
+      transform: scale(1);
+      opacity: 1;
+    }
+    50% { 
+      transform: scale(1.1);
+      opacity: 0.9;
+    }
+  }
+
+}
+
+
+.tracker-header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+
+  .chaos-warning {
+    color: var(--color-warning);
+    font-weight: 700;
+    font-size: 16px;
+  }
+}
+
+.election-markers {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+.election-marker {
+  width: 35px;
+  height: 35px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 2px solid var(--color-border);
+  font-size: 18px;
+  background: var(--color-bg-primary);
+  transition: none;
+
+  &.active {
+    background: var(--color-danger);
+    border-color: var(--color-danger);
+    color: white;
+    box-shadow: 0 4px 12px rgba(231, 76, 60, 0.5);
+  }
+}
+
+.tracker-count {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-libertario);
+}
+
+.government-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  background: var(--color-bg-primary);
+  border-radius: 6px;
+  justify-content: center;
+  transition: none;
+
+  .role-label {
+    font-size: 18px;
+  }
+
+  .player-name {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--color-libertario);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100px;
+  }
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  transition: none;
+
+  .stat-icon {
+    font-size: 24px;
+  }
+
+  .stat-value {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--color-libertario);
+  }
+
+  .stat-label {
+    font-size: 9px;
+    color: var(--color-text-secondary);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+}
+
+@media (max-width: 1200px) {
+  .info-row-top {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .board-layout {
+    gap: 12px;
+  }
+
+  .info-row-top {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .info-card {
+    padding: 8px;
+
+    h4 {
+      font-size: 12px;
+    }
+  }
+
+  .policies-row {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .policy-track {
+    padding: 12px;
+
+    .track-header h4 {
+      font-size: 16px;
+    }
+
+    .track-count {
+      font-size: 14px;
+      padding: 4px 10px;
+    }
+
+    .policy-slot {
+      font-size: 20px;
+      min-height: 40px;
+    }
+  }
+
+  .election-marker {
+    width: 30px;
+    height: 30px;
+    font-size: 16px;
+  }
+
+  .government-item {
+    .role-label {
+      font-size: 16px;
+    }
+
+    .player-name {
+      font-size: 11px;
+      max-width: 80px;
+    }
+  }
+
+  .stat-item {
+    .stat-icon {
+      font-size: 20px;
+    }
+
+    .stat-value {
+      font-size: 14px;
+    }
+
+    .stat-label {
+      font-size: 8px;
+    }
+  }
+}
+

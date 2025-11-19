@@ -1,0 +1,48 @@
+<div class="executive-power-container card" *ngIf="gameState$ | async as gameState">
+  <h3 class="text-center">💼 Poder Presidencial</h3>
+
+  <div *ngIf="isPresident()" class="power-section">
+    <div class="power-info">
+      <div class="power-icon">💀</div>
+      <h4>Operación Traslado</h4>
+      <p class="power-description">
+        Seleccioná a un jugador para eliminarlo del juego. Si eliminás a El Jefe, los Libertarios ganan.
+      </p>
+    </div>
+
+    <div class="player-selection mt-3">
+      <h5>Seleccioná un jugador:</h5>
+      <div class="player-grid">
+        <div 
+          *ngFor="let player of getEligiblePlayers()"
+          class="player-option"
+          [class.selected]="selectedPlayerId === player.id"
+          [class.disabled]="!canSelectPlayer(player)"
+          (click)="canSelectPlayer(player) && selectPlayer(player.id)"
+        >
+          <span class="player-name">{{ player.name }}</span>
+          <span *ngIf="selectedPlayerId === player.id" class="selected-badge">✓</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="power-actions mt-3">
+      <button 
+        class="btn btn-danger btn-large"
+        [disabled]="!selectedPlayerId"
+        (click)="executePower()"
+      >
+        💀 Ejecutar Operación Traslado
+      </button>
+      <p class="text-muted mt-2">
+        ⚠️ Esta acción no se puede deshacer
+      </p>
+    </div>
+  </div>
+
+  <div *ngIf="!isPresident()" class="waiting-section text-center">
+    <div class="spinner">⏳</div>
+    <p class="mt-3">Esperando a que el Presidente ejecute su poder...</p>
+  </div>
+</div>
+

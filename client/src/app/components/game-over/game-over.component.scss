@@ -1,0 +1,351 @@
+.game-over-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 2000;
+}
+
+.game-over-modal {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 15px;
+
+  .modal-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.95);
+    backdrop-filter: blur(10px);
+  }
+
+  .modal-content {
+    position: relative;
+    z-index: 2001;
+    max-width: 900px;
+    width: 100%;
+    max-height: 95vh;
+    overflow-y: auto;
+    animation: slideDown 0.5s ease-out;
+    padding: 20px;
+
+    &::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: var(--color-bg-secondary);
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: var(--color-border);
+      border-radius: 3px;
+    }
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-50px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.game-over-title {
+  text-align: center;
+  font-size: 32px;
+  margin-bottom: 16px;
+  font-weight: 800;
+}
+
+.winner-section {
+  text-align: center;
+  padding: 20px 24px;
+  border-radius: 12px;
+  border: 3px solid;
+  animation: pulse 2s infinite;
+
+  &.libertarios-win {
+    background: rgba(74, 144, 226, 0.1);
+    border-color: var(--color-libertario);
+  }
+
+  &.kirchneristas-win {
+    background: rgba(155, 89, 182, 0.1);
+    border-color: var(--color-kirchnerista);
+  }
+
+  .winner-icon {
+    font-size: 56px;
+    margin-bottom: 8px;
+  }
+
+  .winner-team {
+    font-size: 32px;
+    margin-bottom: 6px;
+    font-weight: 900;
+    letter-spacing: 3px;
+  }
+
+  .winner-text {
+    font-size: 24px;
+    margin-bottom: 10px;
+    color: var(--color-success);
+    font-weight: 700;
+  }
+
+  .win-reason {
+    font-size: 15px;
+    line-height: 1.4;
+    color: var(--color-text-secondary);
+    margin-bottom: 0;
+  }
+}
+
+.teams-reveal {
+  h3 {
+    text-align: center;
+    margin-bottom: 12px;
+    font-size: 20px;
+    font-weight: 700;
+  }
+
+  .teams-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .team-section {
+    padding: 12px;
+    border-radius: 8px;
+    border: 2px solid;
+
+    &.libertarios-section {
+      background: rgba(74, 144, 226, 0.05);
+      border-color: var(--color-libertario);
+    }
+
+    &.kirchneristas-section {
+      background: rgba(155, 89, 182, 0.05);
+      border-color: var(--color-kirchnerista);
+    }
+
+    h4 {
+      margin-bottom: 10px;
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .team-players {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .player-reveal {
+      padding: 8px 10px;
+      background: var(--color-bg-tertiary);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+
+      .player-name {
+        font-weight: 600;
+        font-size: 13px;
+        flex: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .player-badge {
+        font-size: 11px;
+        padding: 3px 6px;
+        border-radius: 3px;
+        font-weight: 700;
+        flex-shrink: 0;
+
+        &.el-jefe {
+          background: var(--color-warning);
+          color: white;
+        }
+      }
+
+      .player-status {
+        flex-shrink: 0;
+        &.dead {
+          opacity: 0.7;
+        }
+      }
+    }
+  }
+}
+
+.game-stats {
+  padding: 16px;
+  background: var(--color-bg-tertiary);
+  border-radius: 8px;
+
+  .stat-row {
+    display: flex;
+    justify-content: space-around;
+    gap: 16px;
+  }
+
+  .stat-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+
+    .stat-label {
+      font-size: 12px;
+      color: var(--color-text-secondary);
+    }
+
+    .stat-value {
+      font-size: 28px;
+      font-weight: 900;
+
+      &.libertario {
+        color: var(--color-libertario);
+      }
+
+      &.kirchnerista {
+        color: var(--color-kirchnerista);
+      }
+    }
+  }
+}
+
+.actions {
+  display: flex;
+  justify-content: center;
+
+  .btn-large {
+    padding: 12px 36px;
+    font-size: 16px;
+    font-weight: 600;
+  }
+}
+
+.footer-message {
+  p {
+    margin: 3px 0;
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 768px) {
+  .game-over-modal {
+    padding: 10px;
+
+    .modal-content {
+      padding: 16px;
+      max-height: 96vh;
+    }
+  }
+
+  .game-over-title {
+    font-size: 26px;
+    margin-bottom: 12px;
+  }
+
+  .winner-section {
+    padding: 16px;
+
+    .winner-icon {
+      font-size: 44px;
+      margin-bottom: 6px;
+    }
+
+    .winner-team {
+      font-size: 24px;
+      letter-spacing: 2px;
+      margin-bottom: 4px;
+    }
+
+    .winner-text {
+      font-size: 18px;
+      margin-bottom: 8px;
+    }
+
+    .win-reason {
+      font-size: 13px;
+    }
+  }
+
+  .teams-reveal {
+    h3 {
+      font-size: 16px;
+      margin-bottom: 10px;
+    }
+
+    .teams-grid {
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+
+    .team-section {
+      padding: 10px;
+
+      h4 {
+        font-size: 14px;
+        margin-bottom: 8px;
+      }
+
+      .player-reveal {
+        padding: 6px 8px;
+
+        .player-name {
+          font-size: 12px;
+        }
+
+        .player-badge {
+          font-size: 10px;
+        }
+      }
+    }
+  }
+
+  .game-stats {
+    padding: 12px;
+
+    .stat-row {
+      gap: 12px;
+    }
+
+    .stat-item {
+      .stat-label {
+        font-size: 11px;
+      }
+
+      .stat-value {
+        font-size: 22px;
+      }
+    }
+  }
+
+  .actions .btn-large {
+    padding: 10px 28px;
+    font-size: 14px;
+  }
+
+  .footer-message p {
+    font-size: 12px;
+  }
+}
+

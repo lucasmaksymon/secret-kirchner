@@ -1,0 +1,178 @@
+<div class="home-container">
+  <div class="header text-center">
+    <h1>🎭 El Secreto de Kirchner</h1>
+    <p class="subtitle">Juego de deducción social | 5-10 jugadores | ~30 min</p>
+  </div>
+
+  <div class="main-content">
+    <!-- Left Column: Room -->
+    <div class="room-section">
+      <h2 class="section-title">🏠 Sala</h2>
+      <div class="card">
+      <div class="player-name-section">
+        <label>Tu nombre:</label>
+        <input 
+          type="text" 
+          [(ngModel)]="playerName" 
+          placeholder="Ingresa tu nombre..."
+          maxlength="20"
+        />
+      </div>
+
+      <div class="actions mt-3">
+        <button 
+          class="btn btn-primary" 
+          (click)="toggleCreateRoom()"
+        >
+          {{ showCreateRoom ? '⬅️ Volver' : '➕ Crear Sala Nueva' }}
+        </button>
+      </div>
+
+      <div *ngIf="showCreateRoom" class="create-room-section mt-3 fade-in">
+        <label>Nombre de la sala:</label>
+        <input 
+          type="text" 
+          [(ngModel)]="roomName" 
+          placeholder="Mi sala..."
+          maxlength="30"
+        />
+        <button 
+          class="btn btn-success mt-2" 
+          (click)="createRoom()"
+          [disabled]="!playerName.trim() || !roomName.trim()"
+        >
+          🚀 Crear y Entrar
+        </button>
+      </div>
+
+      <div *ngIf="!showCreateRoom" class="rooms-section mt-3">
+        <div class="rooms-header">
+          <h3>Salas Disponibles</h3>
+          <button class="btn btn-primary" (click)="loadRooms()">
+            🔄 Actualizar
+          </button>
+        </div>
+
+        <div *ngIf="rooms.length === 0" class="no-rooms text-center text-muted mt-3">
+          <p>😕 No hay salas disponibles</p>
+          <p>¡Crea una nueva sala para empezar!</p>
+        </div>
+
+        <div class="rooms-list grid grid-2 mt-2">
+          <div 
+            *ngFor="let room of rooms" 
+            class="room-card card"
+            (click)="joinRoom(room.roomId)"
+          >
+            <h4>{{ room.roomName }}</h4>
+            <p class="text-muted">
+              👥 {{ room.playerCount }} / {{ room.maxPlayers }} jugadores
+            </p>
+            <button 
+              class="btn btn-libertario mt-2"
+              [disabled]="!playerName.trim()"
+            >
+              Unirse
+            </button>
+          </div>
+        </div>
+      </div>
+      </div>
+    </div>
+
+    <!-- Right Column: How to Play -->
+    <div class="guide-section">
+      <h2 class="section-title">🎮 ¿Cómo jugar?</h2>
+      
+      <div class="accordion-item">
+        <div class="accordion-header" (click)="toggleAccordion('objetivo')">
+          <span class="accordion-title">🎯 Objetivo del Juego</span>
+          <span class="accordion-icon">{{ accordionStates.objetivo ? '▼' : '▶' }}</span>
+        </div>
+        <div class="accordion-content" [class.open]="accordionStates.objetivo">
+          <div class="accordion-body">
+            <div class="team-info">
+              <div class="team-item libertario">
+                <span class="team-icon">🟪</span>
+                <div>
+                  <strong>Libertarios (Mayoría)</strong>
+                  <p>Aprobar 5 decretos libertarios o eliminar a El Jefe</p>
+                </div>
+              </div>
+              <div class="team-item kirchnerista">
+                <span class="team-icon">🟦</span>
+                <div>
+                  <strong>Kirchneristas (Minoría)</strong>
+                  <p>Aprobar 6 decretos kirchneristas o elegir a El Jefe como Jefe de Gabinete después de 3 decretos K</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="accordion-item">
+        <div class="accordion-header" (click)="toggleAccordion('flujo')">
+          <span class="accordion-title">⚙️ Flujo del Juego</span>
+          <span class="accordion-icon">{{ accordionStates.flujo ? '▼' : '▶' }}</span>
+        </div>
+        <div class="accordion-content" [class.open]="accordionStates.flujo">
+          <div class="accordion-body">
+            <ol class="game-steps">
+              <li><strong>Elección:</strong> El Presidente nomina un Jefe de Gabinete</li>
+              <li><strong>Votación:</strong> Todos votan "¡Vamos!" (sí) o "¡Rajá!" (no)</li>
+              <li><strong>Si gana el ¡Vamos!:</strong> El gobierno legisla</li>
+              <li><strong>Legislación:</strong> Presidente elige 2 de 3 decretos</li>
+              <li><strong>Promulgación:</strong> Jefe de Gabinete elige 1 de 2 para promulgar</li>
+              <li><strong>Poderes:</strong> Según decretos kirchneristas promulgados</li>
+              <li><strong>Si gana el ¡Rajá!:</strong> Se suma un fallo (3 fallos = caos electoral)</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+
+      <div class="accordion-item">
+        <div class="accordion-header" (click)="toggleAccordion('poderes')">
+          <span class="accordion-title">💼 Poderes Presidenciales</span>
+          <span class="accordion-icon">{{ accordionStates.poderes ? '▼' : '▶' }}</span>
+        </div>
+        <div class="accordion-content" [class.open]="accordionStates.poderes">
+          <div class="accordion-body">
+            <ul class="powers-list">
+              <li>📊 <strong>Intervenir INDEC:</strong> Ver las próximas 3 cartas del mazo</li>
+              <li>🕵️ <strong>Investigar con AFIP:</strong> Ver la lealtad secreta de un jugador</li>
+              <li>🏛️ <strong>Sesión Especial:</strong> Elegir quién será el próximo Presidente</li>
+              <li>💀 <strong>Operación Traslado:</strong> Eliminar a un jugador del juego</li>
+              <li>🚫 <strong>Veto Presidencial:</strong> Rechazar ambas cartas (solo después de 5 decretos K)</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="accordion-item">
+        <div class="accordion-header" (click)="toggleAccordion('consejos')">
+          <span class="accordion-title">💡 Consejos Estratégicos</span>
+          <span class="accordion-icon">{{ accordionStates.consejos ? '▼' : '▶' }}</span>
+        </div>
+        <div class="accordion-content" [class.open]="accordionStates.consejos">
+          <div class="accordion-body">
+            <ul class="tips-list">
+              <li>🗣️ <strong>Comunica:</strong> Usa el chat para discutir votaciones y sospechas</li>
+              <li>👀 <strong>Observa patrones:</strong> Qué decretos promulgan, cómo votan</li>
+              <li>🎭 <strong>Engaña sabiamente:</strong> Los Kirchneristas deben aparentar ser Libertarios</li>
+              <li>🤝 <strong>Forma alianzas:</strong> Pero desconfía, cualquiera puede ser El Jefe</li>
+              <li>⚡ <strong>Actúa rápido:</strong> Después de 3 decretos K, ¡El Jefe puede ganar siendo elegido!</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer text-center">
+    <p class="text-muted">
+      Basado en "Secret Hitler" | CC BY-NC-SA 4.0 | Con fines satíricos
+    </p>
+  </footer>
+</div>
+

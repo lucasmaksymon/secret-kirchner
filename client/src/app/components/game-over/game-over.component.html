@@ -1,0 +1,77 @@
+<div class="game-over-container" *ngIf="gameState$ | async as gameState">
+  <div class="game-over-modal">
+    <div class="modal-overlay"></div>
+    <div class="modal-content card">
+      <h1 class="game-over-title">🏁 ¡Juego Terminado!</h1>
+
+      <div 
+        class="winner-section"
+        [class.libertarios-win]="gameState.winner === 'libertarios'"
+        [class.kirchneristas-win]="gameState.winner === 'kirchneristas'"
+      >
+        <div class="winner-icon">
+          {{ gameState.winner === 'libertarios' ? '🦅' : '✊' }}
+        </div>
+        <h2 class="winner-team">
+          {{ gameState.winner === 'libertarios' ? 'LIBERTARIOS' : 'KIRCHNERISTAS' }}
+        </h2>
+        <h3 class="winner-text">¡GANARON!</h3>
+        <p class="win-reason">{{ gameState.winReason }}</p>
+      </div>
+
+      <div class="teams-reveal mt-2">
+        <h3>📜 Revelación de Roles</h3>
+        
+        <div class="teams-grid">
+          <!-- Libertarios -->
+          <div class="team-section libertarios-section">
+            <h4>🦅 Libertarios</h4>
+            <div class="team-players">
+              <div *ngFor="let player of libertarios" class="player-reveal">
+                <span class="player-name">{{ player.name }}</span>
+                <span *ngIf="player.isDead" class="player-status dead">💀</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Kirchneristas -->
+          <div class="team-section kirchneristas-section">
+            <h4>✊ Kirchneristas</h4>
+            <div class="team-players">
+              <div *ngFor="let player of kirchneristas" class="player-reveal">
+                <span class="player-name">{{ player.name }}</span>
+                <span *ngIf="player.role && player.role.type === 'el_jefe'" class="player-badge el-jefe">👤 El Jefe</span>
+                <span *ngIf="player.isDead" class="player-status dead">💀</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="game-stats mt-2">
+        <div class="stat-row">
+          <div class="stat-item">
+            <span class="stat-label">Decretos Libertarios:</span>
+            <span class="stat-value libertario">{{ gameState.libertarianPolicies }}</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Decretos Kirchneristas:</span>
+            <span class="stat-value kirchnerista">{{ gameState.kirchneristaPolicies }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="actions mt-2">
+        <button class="btn btn-primary btn-large" (click)="leaveGame()">
+          🏠 Volver al Inicio
+        </button>
+      </div>
+
+      <div class="footer-message mt-2 text-center text-muted">
+        <p>¡Gracias por jugar El Secreto de Kirchner!</p>
+        <p>🎭 Una sátira política argentina</p>
+      </div>
+    </div>
+  </div>
+</div>
+

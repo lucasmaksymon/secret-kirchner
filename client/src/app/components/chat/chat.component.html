@@ -1,0 +1,31 @@
+<div class="chat-container card">
+  <h4>💬 Chat</h4>
+
+  <div class="chat-messages">
+    <div 
+      *ngFor="let message of chatMessages$ | async"
+      class="chat-message"
+    >
+      <span class="message-author">{{ message.playerName }}:</span>
+      <span class="message-text">{{ message.message }}</span>
+    </div>
+  </div>
+
+  <div class="chat-input">
+    <input 
+      type="text" 
+      [(ngModel)]="newMessage"
+      (keypress)="onKeyPress($event)"
+      placeholder="Escribí un mensaje..."
+      maxlength="200"
+    />
+    <button 
+      class="btn btn-primary"
+      (click)="sendMessage()"
+      [disabled]="!newMessage.trim()"
+    >
+      Enviar
+    </button>
+  </div>
+</div>
+

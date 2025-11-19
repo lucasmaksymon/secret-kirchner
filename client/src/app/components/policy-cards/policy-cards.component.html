@@ -1,0 +1,78 @@
+<div class="policy-cards-container card" *ngIf="gameState$ | async as gameState">
+  <h3 class="text-center">{{ getPhaseInstruction() }}</h3>
+
+  <div *ngIf="currentCards$ | async as cards" class="cards-section">
+    <div *ngIf="cards.length > 0" class="cards-display">
+      <div 
+        *ngFor="let card of cards; let i = index"
+        class="policy-card"
+        [class.libertario]="card.type === 'libertario'"
+        [class.kirchnerista]="card.type === 'kirchnerista'"
+        [class.selected]="selectedCardIndex === i"
+        [class.can-select]="canAct()"
+        (click)="canAct() && selectCard(i)"
+      >
+        <div class="card-icon">
+          {{ card.type === 'libertario' ? '🦅' : '✊' }}
+        </div>
+        <div class="card-type">
+          {{ card.type === 'libertario' ? 'LIBERTARIO' : 'KIRCHNERISTA' }}
+        </div>
+        <div class="card-name">
+          {{ card.name }}
+        </div>
+        <div *ngIf="selectedCardIndex === i" class="selected-indicator">
+          ✓ Seleccionado
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="canAct() && cards.length > 0" class="actions mt-3">
+      <div *ngIf="gameState.phase === 'legislative_president'">
+        <button 
+          class="btn btn-danger"
+          [disabled]="selectedCardIndex === null"
+          (click)="discardCard()"
+        >
+          🗑️ Descartar Carta Seleccionada
+        </button>
+        <p class="text-muted mt-2">
+          Las otras 2 cartas irán al Jefe de Gabinete
+        </p>
+      </div>
+
+      <div *ngIf="gameState.phase === 'legislative_cabinet'">
+        <div class="cabinet-actions">
+          <button 
+            class="btn btn-success"
+            [disabled]="selectedCardIndex === null"
+            (click)="enactPolicy()"
+          >
+            ✅ Promulgar Carta Seleccionada
+          </button>
+
+          <button 
+            *ngIf="gameState.vetoUnlocked"
+            class="btn btn-warning"
+            (click)="requestVeto()"
+          >
+            🚫 Solicitar Veto Presidencial
+          </button>
+        </div>
+
+        <p class="text-muted mt-2">
+          La otra carta será descartada
+        </p>
+        <p *ngIf="gameState.vetoUnlocked" class="text-warning mt-1">
+          💡 El veto está desbloqueado. Podés solicitar descartar ambas cartas (el Presidente debe aceptar)
+        </p>
+      </div>
+    </div>
+
+    <div *ngIf="!canAct() && cards.length === 0" class="waiting-message text-center">
+      <div class="spinner">⏳</div>
+      <p>Esperando...</p>
+    </div>
+  </div>
+</div>
+

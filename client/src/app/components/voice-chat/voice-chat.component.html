@@ -1,0 +1,78 @@
+<div class="voice-chat-container">
+  <!-- Error Message -->
+  <div *ngIf="errorMessage" class="voice-error">
+    ⚠️ {{ errorMessage }}
+  </div>
+
+  <!-- Voice Controls -->
+  <div class="voice-controls">
+    <button 
+      class="btn-voice"
+      [class.connected]="isConnected"
+      [class.connecting]="isConnecting"
+      [disabled]="isConnecting"
+      (click)="toggleVoiceChat()"
+      [title]="isConnected ? 'Salir del chat de voz' : 'Unirse al chat de voz'"
+    >
+      <span class="voice-icon">
+        {{ isConnecting ? '⏳' : isConnected ? '🚪' : '🎧' }}
+      </span>
+      <span class="voice-label">
+        {{ isConnecting ? 'Conectando...' : isConnected ? 'Salir del Chat' : 'Entrar al Chat' }}
+      </span>
+    </button>
+
+    <!-- Audio Controls (only when connected) -->
+    <div *ngIf="isConnected" class="audio-controls">
+      <button 
+        class="btn-control"
+        [class.active]="!isMuted"
+        [class.muted]="isMuted"
+        (click)="toggleMute()"
+        [title]="isMuted ? 'Activar micrófono' : 'Silenciar micrófono'"
+      >
+        <span class="control-icon">{{ isMuted ? '🔇' : '🎤' }}</span>
+      </button>
+
+      <button 
+        class="btn-control"
+        [class.active]="!isDeafened"
+        [class.deafened]="isDeafened"
+        (click)="toggleDeafen()"
+        [title]="isDeafened ? 'Activar audio' : 'Desactivar audio'"
+      >
+        <span class="control-icon">{{ isDeafened ? '🔇' : '🔊' }}</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Voice Users List (when connected) -->
+  <div *ngIf="isConnected && voiceUsers.size > 0" class="voice-users-list">
+    <div class="voice-users-header">
+      <span>👥 En el chat ({{ voiceUsers.size }})</span>
+    </div>
+    <div class="voice-users-items">
+      <div 
+        *ngFor="let user of getVoiceUsersArray()"
+        class="voice-user-item"
+        [class.speaking]="user.isSpeaking"
+        [class.muted]="user.isMuted"
+      >
+        <span class="user-indicator">
+          <span class="speaking-wave" *ngIf="user.isSpeaking && !user.isMuted"></span>
+          <span class="muted-icon" *ngIf="user.isMuted">🔇</span>
+          <span class="idle-icon" *ngIf="!user.isSpeaking && !user.isMuted">🔊</span>
+        </span>
+        <span class="user-name">{{ user.playerName }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Speaking Indicator (compact) -->
+  <div *ngIf="isConnected && getSpeakingUsers().length > 0" class="speaking-indicator">
+    🗣️ <strong>{{ getSpeakingUsers()[0].playerName }}</strong>
+    <span *ngIf="getSpeakingUsers().length > 1">
+      +{{ getSpeakingUsers().length - 1 }} más
+    </span>
+  </div>
+</div>

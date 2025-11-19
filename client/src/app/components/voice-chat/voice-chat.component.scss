@@ -1,0 +1,244 @@
+.voice-chat-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.voice-error {
+  background: rgba(231, 76, 60, 0.1);
+  border: 2px solid var(--color-danger);
+  color: var(--color-danger);
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  animation: shake 0.5s;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
+.voice-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.btn-voice {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: var(--color-bg-tertiary);
+  border: 2px solid var(--color-border);
+  border-radius: 8px;
+  color: var(--color-text-primary);
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s;
+
+  &.connected {
+    background: var(--color-success);
+    border-color: var(--color-success);
+    color: white;
+  }
+
+  &.connecting {
+    opacity: 0.7;
+    cursor: wait;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+
+  .voice-icon {
+    font-size: 18px;
+  }
+
+  .voice-label {
+    font-size: 13px;
+  }
+}
+
+.audio-controls {
+  display: flex;
+  gap: 6px;
+  width: 100%;
+}
+
+.btn-control {
+  flex: 1;
+  padding: 10px 14px;
+  background: var(--color-bg-tertiary);
+  border: 2px solid var(--color-border);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &.active {
+    background: var(--color-success);
+    border-color: var(--color-success);
+    
+    .control-icon {
+      filter: brightness(1.2);
+    }
+  }
+
+  &.muted,
+  &.deafened {
+    background: var(--color-danger);
+    border-color: var(--color-danger);
+    color: white;
+  }
+
+  &:hover:not(:disabled) {
+    transform: scale(1.05);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  }
+
+  .control-icon {
+    display: block;
+  }
+}
+
+.voice-users-list {
+  background: var(--color-bg-tertiary);
+  border: 2px solid var(--color-border);
+  border-radius: 8px;
+  padding: 10px;
+  max-height: 200px;
+  overflow-y: auto;
+
+  &::-webkit-scrollbar {
+    width: 5px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: var(--color-bg-secondary);
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: var(--color-border);
+    border-radius: 3px;
+  }
+
+  .voice-users-header {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--color-text-secondary);
+    margin-bottom: 8px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .voice-users-items {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+}
+
+.voice-user-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  background: var(--color-bg-secondary);
+  border-radius: 6px;
+  font-size: 13px;
+  transition: all 0.3s;
+
+  &.speaking {
+    background: rgba(39, 174, 96, 0.2);
+    border: 1px solid var(--color-success);
+    animation: pulse 1s infinite;
+  }
+
+  &.muted {
+    opacity: 0.6;
+  }
+
+  .user-indicator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    font-size: 14px;
+  }
+
+  .speaking-wave {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    background: var(--color-success);
+    border-radius: 50%;
+    animation: wave 0.8s infinite;
+  }
+
+  @keyframes wave {
+    0%, 100% { transform: scale(0.8); opacity: 0.5; }
+    50% { transform: scale(1.2); opacity: 1; }
+  }
+
+  .user-name {
+    flex: 1;
+    font-weight: 600;
+    color: var(--color-text-primary);
+  }
+}
+
+.speaking-indicator {
+  background: rgba(39, 174, 96, 0.15);
+  border: 2px solid var(--color-success);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 12px;
+  color: var(--color-text-primary);
+  animation: fadeIn 0.3s;
+
+  strong {
+    color: var(--color-success);
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+// Responsive
+@media (max-width: 768px) {
+  .btn-voice {
+    padding: 8px 12px;
+
+    .voice-label {
+      font-size: 12px;
+    }
+
+    .voice-icon {
+      font-size: 16px;
+    }
+  }
+
+  .btn-control {
+    padding: 8px 12px;
+    font-size: 18px;
+  }
+
+  .voice-users-list {
+    max-height: 150px;
+  }
+}
+

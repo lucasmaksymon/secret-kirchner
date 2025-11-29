@@ -148,10 +148,10 @@ Una vez que tengas la URL del backend:
   
 - **Start Command**: 
   ```
-  node client/noop.js
+  node noop.js
   ```
   
-  **Explicación:** Render requiere un Start Command incluso para Static Sites. Este script dummy simplemente sale exitosamente sin hacer nada, ya que los Static Sites solo sirven archivos estáticos.
+  **Explicación:** Render requiere un Start Command incluso para Static Sites. Este script dummy se queda corriendo indefinidamente sin hacer nada, ya que los Static Sites solo sirven archivos estáticos desde el directorio publicado.
 
 **Environment Variables** (click en "Advanced"):
 Agrega estas variables con la URL de tu backend:
@@ -178,7 +178,7 @@ Si Render está intentando ejecutar el servidor en el Static Site:
 1. Ve a tu Static Site en Render
 2. Click en **"Settings"**
 3. Busca la sección **"Start Command"**
-4. Cámbialo a: `node client/noop.js`
+4. Cámbialo a: `node noop.js`
 5. Guarda los cambios y Render redeployará
 
 Este script dummy simplemente sale exitosamente sin hacer nada, ya que los Static Sites solo sirven archivos estáticos.

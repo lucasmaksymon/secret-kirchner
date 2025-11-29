@@ -93,8 +93,37 @@ export class LobbyComponent implements OnInit, OnDestroy {
   copyRoomLink(): void {
     const url = window.location.href;
     navigator.clipboard.writeText(url).then(() => {
-      alert('¡Link copiado al portapapeles!');
+      this.showMessage('✅ Link copiado al portapapeles. ¡Compártelo con tus amigos!');
+    }).catch(() => {
+      // Fallback para navegadores que no soportan clipboard API
+      const textArea = document.createElement('textarea');
+      textArea.value = url;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      this.showMessage('✅ Link copiado al portapapeles. ¡Compártelo con tus amigos!');
     });
+  }
+
+  shareRoomLink(): void {
+    const url = window.location.href;
+    const roomName = this.gameState?.roomName || 'Sala';
+    
+    // Intentar usar Web Share API si está disponible
+    if (navigator.share) {
+      navigator.share({
+        title: `¡Únete a ${roomName}!`,
+        text: `¡Únete a mi partida de El Secreto de Kirchner!`,
+        url: url
+      }).catch(() => {
+        // Si el usuario cancela, usar copiar como fallback
+        this.copyRoomLink();
+      });
+    } else {
+      // Fallback: copiar al portapapeles
+      this.copyRoomLink();
+    }
   }
 
   addAI(difficulty: 'easy' | 'medium' | 'hard' = 'medium'): void {

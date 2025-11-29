@@ -230,6 +230,14 @@ class AIPlayer {
   }
 
   /**
+   * Alias para respondToVeto con firma diferente (usado por aiController)
+   * Retorna true si el presidente acepta el veto, false si lo rechaza
+   */
+  presidentAgreeVeto(gameState, president) {
+    return this.respondToVeto(president, gameState);
+  }
+
+  /**
    * Elige jugador para investigar
    */
   chooseInvestigationTarget(gameState, aiPlayer) {
@@ -370,6 +378,28 @@ class AIPlayer {
       this.suspicionLevels[targetId] = -5; // Baja sospecha (es libertario)
       this.trustLevels[targetId] = 5;
     }
+  }
+
+  /**
+   * Actualiza después de usar el poder peek (ver las 3 primeras cartas)
+   * Almacena información sobre las cartas vistas para decisiones futuras
+   */
+  updateAfterPeek(topThreeCards) {
+    // Almacenar información sobre las cartas vistas
+    // Esto puede ser útil para decisiones futuras, aunque las cartas pueden cambiar
+    // con el tiempo debido a mezclas del mazo
+    if (!this.knownCards) {
+      this.knownCards = [];
+    }
+    
+    // Guardar las cartas vistas (con timestamp para considerar que pueden cambiar)
+    this.knownCards = topThreeCards.map(card => ({
+      ...card,
+      seenAt: Date.now()
+    }));
+    
+    // La IA puede usar esta información para tomar mejores decisiones
+    // Por ejemplo, si sabe que hay muchas cartas de un tipo en el mazo
   }
 
   /**

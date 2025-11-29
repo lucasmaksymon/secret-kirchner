@@ -1,13 +1,15 @@
 /**
- * Estado del juego para El Secreto de Kirchner
- * Maneja toda la lógica del flujo del juego
+ * @fileoverview Estado del juego para El Secreto de Kirchner
+ * @module game/gameState
  */
 
 const { v4: uuidv4 } = require('uuid');
 const { generateRoles, getInitialKnowledge, isElJefe, TEAM_TYPES } = require('./roles');
 const { createPolicyDeck, drawPolicies, discardPolicy, checkVictoryCondition, getPowerForTrack } = require('./policies');
 const { canExecutePower } = require('./powers');
+const { GAME_CONFIG, ERROR_MESSAGES } = require('../config/constants');
 
+/** @type {Object<string, string>} Fases del juego */
 const GAME_PHASES = {
   LOBBY: 'lobby',
   ROLE_REVEAL: 'role_reveal',
@@ -20,90 +22,131 @@ const GAME_PHASES = {
   GAME_OVER: 'game_over'
 };
 
+/**
+ * Clase que maneja el estado completo del juego
+ * @class GameState
+ */
 class GameState {
+  /**
+   * Crea una instancia de GameState
+   * @param {string} roomId - ID único de la sala
+   * @param {string} roomName - Nombre de la sala
+   * @param {string|null} hostId - ID del jugador host (null al crear)
+   */
   constructor(roomId, roomName, hostId) {
     this.roomId = roomId;
     this.roomName = roomName;
     this.hostId = hostId;
     this.phase = GAME_PHASES.LOBBY;
     
-    // Jugadores
+    /** @type {Array<Object>} Lista de jugadores */
     this.players = [];
+    /** @type {Array<Object>} Jugadores vivos */
     this.alivePlayers = [];
+    /** @type {Array<Object>} Jugadores eliminados */
     this.deadPlayers = [];
     
-    // Gobierno actual
+    /** @type {number} Índice del presidente actual */
     this.presidentIndex = -1;
+    /** @type {string|null} ID del Jefe de Gabinete actual */
     this.cabinetChiefId = null;
+    /** @type {string|null} ID del presidente anterior */
     this.previousPresidentId = null;
+    /** @type {string|null} ID del Jefe de Gabinete anterior */
     this.previousCabinetChiefId = null;
     
-    // Elección
+    /** @type {string|null} ID del Jefe de Gabinete nominado */
     this.nominatedCabinetChiefId = null;
+    /** @type {Object<string, boolean>} Votos emitidos */
     this.votes = {};
     
-    // Legislación
+    /** @type {Array<Object>} Mazo de decretos */
     this.deck = [];
+    /** @type {Array<Object>} Pila de descarte */
     this.discardPile = [];
+    /** @type {Array<Object>} Cartas actuales en juego */
     this.currentPolicyCards = [];
+    /** @type {Object|null} Carta descartada por el presidente */
     this.presidentDiscardedCard = null;
     
-    // Tablero
+    /** @type {number} Contador de decretos libertarios */
     this.libertarianPolicies = 0;
+    /** @type {number} Contador de decretos kirchneristas */
     this.kirchneristaPolicies = 0;
     
-    // Poderes presidenciales
+    /** @type {string|null} Poder presidencial actual */
     this.currentPower = null;
+    /** @type {boolean} Indica si hay un poder en progreso */
     this.powerInProgress = false;
     
-    // Caos y veto
+    /** @type {number} Contador de gobiernos fallidos */
     this.failedGovernments = 0;
+    /** @type {boolean} Indica si el veto está desbloqueado */
     this.vetoUnlocked = false;
+    /** @type {boolean} Indica si se solicitó un veto */
     this.vetoRequested = false;
+    /** @type {boolean|null} Respuesta del presidente al veto */
     this.presidentVetoResponse = null;
+    /** @type {boolean|null} Respuesta del Jefe de Gabinete al veto */
     this.cabinetChiefVetoResponse = null;
     
-    // Sesión especial
+    /** @type {boolean} Indica si hay una sesión especial activa */
     this.specialElectionActive = false;
     
-    // Estado del juego
+    /** @type {boolean} Indica si el juego ha comenzado */
     this.gameStarted = false;
+    /** @type {boolean} Indica si el juego terminó */
     this.gameOver = false;
+    /** @type {string|null} Equipo ganador */
     this.winner = null;
+    /** @type {string|null} Razón de la victoria */
     this.winReason = null;
     
-    // Control de flujo por host
+    /** @type {boolean} Indica si se está esperando al host */
     this.waitingForHost = false;
-    this.pendingAction = null; // Acción pendiente después de que el host continúe
+    /** @type {string|null} Acción pendiente */
+    this.pendingAction = null;
     
-    // Configuración
+    /** @type {Object} Configuración del juego */
     this.settings = {
-      maxPlayers: 10,
-      minPlayers: 5
+      maxPlayers: GAME_CONFIG.MAX_PLAYERS,
+      minPlayers: GAME_CONFIG.MIN_PLAYERS
     };
   }
 
   /**
    * Agrega un jugador a la sala
+   * @param {string} socketId - ID del socket del jugador
+   * @param {string} playerName - Nombre del jugador
+   * @param {boolean} [isAI=false] - Indica si es un jugador IA
+   * @returns {Object} Resultado con success, player y message
    */
   addPlayer(socketId, playerName, isAI = false) {
+    if (!socketId || !playerName) {
+      return { success: false, message: 'SocketId y nombre de jugador son requeridos' };
+    }
+
+    if (typeof playerName !== 'string' || playerName.trim().length === 0) {
+      return { success: false, message: 'Nombre de jugador inválido' };
+    }
+
     if (this.gameStarted) {
-      return { success: false, message: 'El juego ya comenzó' };
+      return { success: false, message: ERROR_MESSAGES.GAME_STARTED };
     }
 
     if (this.players.length >= this.settings.maxPlayers) {
-      return { success: false, message: 'La sala está llena' };
+      return { success: false, message: ERROR_MESSAGES.ROOM_FULL };
     }
 
-    const existingPlayer = this.players.find(p => p.name === playerName);
+    const existingPlayer = this.players.find(p => p.name === playerName.trim());
     if (existingPlayer) {
-      return { success: false, message: 'Ya existe un jugador con ese nombre' };
+      return { success: false, message: ERROR_MESSAGES.DUPLICATE_NAME };
     }
 
     const player = {
       id: uuidv4(),
       socketId: socketId,
-      name: playerName,
+      name: playerName.trim(),
       role: null,
       isDead: false,
       isReady: false,
@@ -123,6 +166,8 @@ class GameState {
 
   /**
    * Remueve un jugador de la sala
+   * @param {string} socketId - ID del socket del jugador a remover
+   * @returns {Object|null} Jugador removido o null si no existe
    */
   removePlayer(socketId) {
     const playerIndex = this.players.findIndex(p => p.socketId === socketId);
@@ -130,7 +175,6 @@ class GameState {
 
     const player = this.players.splice(playerIndex, 1)[0];
     
-    // Si es el host, transferir a otro jugador
     if (this.hostId === player.id && this.players.length > 0) {
       this.hostId = this.players[0].id;
     }
@@ -139,41 +183,34 @@ class GameState {
   }
 
   /**
-   * Inicia el juego
+   * Inicia el juego, asigna roles y crea el mazo
+   * @returns {Object} Resultado con success, message y knowledge
    */
   startGame() {
     if (this.players.length < this.settings.minPlayers) {
       return { 
         success: false, 
-        message: `Se necesitan al menos ${this.settings.minPlayers} jugadores` 
+        message: ERROR_MESSAGES.MIN_PLAYERS
       };
     }
 
     if (this.players.length > this.settings.maxPlayers) {
       return { 
         success: false, 
-        message: `Máximo ${this.settings.maxPlayers} jugadores` 
+        message: ERROR_MESSAGES.MAX_PLAYERS
       };
     }
 
     try {
-      // Generar y asignar roles
       const roles = generateRoles(this.players.length);
       this.players.forEach((player, index) => {
         player.role = roles[index];
       });
 
-      // Crear mazo de decretos
       this.deck = createPolicyDeck();
       this.discardPile = [];
-
-      // Inicializar jugadores vivos
       this.alivePlayers = [...this.players];
-
-      // Establecer primer presidente (aleatorio)
       this.presidentIndex = Math.floor(Math.random() * this.players.length);
-
-      // Cambiar fase
       this.gameStarted = true;
       this.phase = GAME_PHASES.ROLE_REVEAL;
 
@@ -192,6 +229,7 @@ class GameState {
 
   /**
    * Avanza a la fase de nominación
+   * @returns {Object} Resultado con success, presidentId y message
    */
   startNominationPhase() {
     this.phase = GAME_PHASES.NOMINATION;
@@ -207,6 +245,9 @@ class GameState {
 
   /**
    * Pausa el juego esperando que el host continúe
+   * @param {string} action - Acción a ejecutar cuando el host continúe
+   * @param {string} [message='Esperando que el host continúe...'] - Mensaje de espera
+   * @returns {Object} Resultado con success, message y waitingForHost
    */
   pauseForHost(action, message = 'Esperando que el host continúe...') {
     this.waitingForHost = true;
@@ -220,6 +261,7 @@ class GameState {
 
   /**
    * El host continúa a la siguiente fase
+   * @returns {Object} Resultado con success, action y message
    */
   hostContinue() {
     if (!this.waitingForHost) {
@@ -242,20 +284,27 @@ class GameState {
 
   /**
    * Nomina un Jefe de Gabinete
+   * @param {string} presidentId - ID del presidente que nomina
+   * @param {string} cabinetChiefId - ID del jugador a nominar
+   * @returns {Object} Resultado con success, cabinetChiefId y message
    */
   nominateCabinetChief(presidentId, cabinetChiefId) {
+    if (!presidentId || !cabinetChiefId) {
+      return { success: false, message: 'IDs de presidente y candidato requeridos' };
+    }
+
     if (this.phase !== GAME_PHASES.NOMINATION) {
-      return { success: false, message: 'No es fase de nominación' };
+      return { success: false, message: ERROR_MESSAGES.INVALID_PHASE };
     }
 
     const president = this.getCurrentPresident();
-    if (president.id !== presidentId) {
+    if (!president || president.id !== presidentId) {
       return { success: false, message: 'No eres el Presidente' };
     }
 
     const nominee = this.getPlayerById(cabinetChiefId);
     if (!nominee) {
-      return { success: false, message: 'Jugador no encontrado' };
+      return { success: false, message: ERROR_MESSAGES.PLAYER_NOT_FOUND };
     }
 
     if (nominee.isDead) {
@@ -263,10 +312,8 @@ class GameState {
     }
 
     // Verificar term limits
-    if (this.alivePlayers.length > 5) {
-      if (cabinetChiefId === this.previousCabinetChiefId) {
-        return { success: false, message: 'No se puede renominar al Jefe de Gabinete anterior' };
-      }
+    if (this.alivePlayers.length > 5 && cabinetChiefId === this.previousCabinetChiefId) {
+      return { success: false, message: 'No se puede renominar al Jefe de Gabinete anterior' };
     }
 
     this.nominatedCabinetChiefId = cabinetChiefId;
@@ -281,11 +328,18 @@ class GameState {
   }
 
   /**
-   * Registra un voto
+   * Registra un voto en la elección actual
+   * @param {string} playerId - ID del jugador que vota
+   * @param {boolean} vote - true para "Ja!" (sí), false para "Nein!" (no)
+   * @returns {Object} Resultado con success
    */
   castVote(playerId, vote) {
+    if (!playerId || typeof vote !== 'boolean') {
+      return { success: false, message: 'PlayerId y voto válido requeridos' };
+    }
+
     if (this.phase !== GAME_PHASES.ELECTION) {
-      return { success: false, message: 'No es fase de votación' };
+      return { success: false, message: ERROR_MESSAGES.INVALID_PHASE };
     }
 
     const player = this.getPlayerById(playerId);
@@ -299,22 +353,20 @@ class GameState {
   }
 
   /**
-   * Cuenta los votos y determina el resultado
+   * Cuenta los votos y determina el resultado de la elección
+   * @returns {Object} Resultado con approved, jaVotes, neinVotes y posiblemente gameOver
    */
   countVotes() {
     const votesArray = Object.values(this.votes);
     const jaVotes = votesArray.filter(v => v === true).length;
     const neinVotes = votesArray.filter(v => v === false).length;
     const majority = Math.ceil(this.alivePlayers.length / 2);
-
     const approved = jaVotes >= majority;
 
     if (approved) {
-      // Gobierno aprobado
       this.cabinetChiefId = this.nominatedCabinetChiefId;
       this.failedGovernments = 0;
       
-      // Verificar victoria kirchnerista si El Jefe es elegido después de 3 decretos
       const cabinetChief = this.getPlayerById(this.cabinetChiefId);
       if (this.kirchneristaPolicies >= 3 && isElJefe(cabinetChief.role)) {
         this.gameOver = true;
@@ -330,7 +382,6 @@ class GameState {
         };
       }
 
-      // Avanzar a fase legislativa
       this.phase = GAME_PHASES.LEGISLATIVE_PRESIDENT;
       
       return {
@@ -339,15 +390,12 @@ class GameState {
         neinVotes: neinVotes
       };
     } else {
-      // Gobierno rechazado
       this.failedGovernments++;
       
-      // Verificar caos (3 gobiernos fallidos)
       if (this.failedGovernments >= 3) {
         return this.triggerChaos();
       }
 
-      // Avanzar al siguiente presidente
       this.advancePresident();
       this.phase = GAME_PHASES.NOMINATION;
       
@@ -362,6 +410,7 @@ class GameState {
 
   /**
    * Roba 3 cartas para el Presidente
+   * @returns {Object} Resultado con success y cards
    */
   presidentDrawCards() {
     if (this.phase !== GAME_PHASES.LEGISLATIVE_PRESIDENT) {
@@ -380,15 +429,25 @@ class GameState {
   }
 
   /**
-   * Presidente descarta una carta
+   * Presidente descarta una carta de las 3 recibidas
+   * @param {number} cardIndex - Índice de la carta a descartar (0-2)
+   * @returns {Object} Resultado con success y remainingCards
    */
   presidentDiscardCard(cardIndex) {
+    if (typeof cardIndex !== 'number' || cardIndex < 0) {
+      return { success: false, message: 'Índice de carta inválido' };
+    }
+
     if (this.phase !== GAME_PHASES.LEGISLATIVE_PRESIDENT) {
-      return { success: false, message: 'No es fase legislativa del presidente' };
+      return { success: false, message: ERROR_MESSAGES.INVALID_PHASE };
     }
 
     if (this.currentPolicyCards.length !== 3) {
       return { success: false, message: 'Primero debes robar las cartas' };
+    }
+
+    if (cardIndex >= this.currentPolicyCards.length) {
+      return { success: false, message: 'Índice de carta fuera de rango' };
     }
 
     const result = discardPolicy(this.currentPolicyCards, cardIndex);
@@ -396,7 +455,6 @@ class GameState {
     this.discardPile.push(result.discarded);
     this.currentPolicyCards = result.remaining;
 
-    // Verificar si el veto está desbloqueado
     if (this.kirchneristaPolicies >= 5) {
       this.vetoUnlocked = true;
     }
@@ -411,14 +469,24 @@ class GameState {
 
   /**
    * Jefe de Gabinete elige una carta para promulgar
+   * @param {number} cardIndex - Índice de la carta a promulgar (0-1)
+   * @returns {Object} Resultado con success, enactedPolicy y posiblemente gameOver/power
    */
   cabinetChiefEnactPolicy(cardIndex) {
+    if (typeof cardIndex !== 'number' || cardIndex < 0) {
+      return { success: false, message: 'Índice de carta inválido' };
+    }
+
     if (this.phase !== GAME_PHASES.LEGISLATIVE_CABINET && this.phase !== GAME_PHASES.VETO_DECISION) {
-      return { success: false, message: 'No es tu turno' };
+      return { success: false, message: ERROR_MESSAGES.INVALID_PHASE };
     }
 
     if (this.currentPolicyCards.length !== 2) {
       return { success: false, message: 'Error en el estado del juego' };
+    }
+
+    if (cardIndex >= this.currentPolicyCards.length) {
+      return { success: false, message: 'Índice de carta fuera de rango' };
     }
 
     const result = discardPolicy(this.currentPolicyCards, cardIndex);
@@ -427,14 +495,12 @@ class GameState {
     this.currentPolicyCards = [];
     this.presidentDiscardedCard = null;
 
-    // Promulgar decreto
     if (enactedPolicy.type === 'kirchnerista') {
       this.kirchneristaPolicies++;
     } else {
       this.libertarianPolicies++;
     }
 
-    // Verificar condición de victoria
     const victory = checkVictoryCondition(this.kirchneristaPolicies, this.libertarianPolicies);
     if (victory) {
       this.gameOver = true;
@@ -451,7 +517,6 @@ class GameState {
       };
     }
 
-    // Verificar si hay poder presidencial
     const power = getPowerForTrack(this.kirchneristaPolicies, this.players.length);
     if (enactedPolicy.type === 'kirchnerista' && power) {
       this.currentPower = power;
@@ -464,7 +529,6 @@ class GameState {
       };
     }
 
-    // No hay poder, avanzar al siguiente presidente
     this.completeRound();
     
     return {
@@ -474,7 +538,9 @@ class GameState {
   }
 
   /**
-   * Solicita el veto
+   * Solicita el veto presidencial
+   * @param {string} cabinetChiefId - ID del Jefe de Gabinete que solicita
+   * @returns {Object} Resultado con success
    */
   requestVeto(cabinetChiefId) {
     if (!this.vetoUnlocked) {
@@ -493,6 +559,9 @@ class GameState {
 
   /**
    * Respuesta del Presidente al veto
+   * @param {string} presidentId - ID del presidente
+   * @param {boolean} accepts - true si acepta el veto, false si lo rechaza
+   * @returns {Object} Resultado con success y estado del veto
    */
   respondToVeto(presidentId, accepts) {
     if (!this.vetoRequested) {
@@ -515,18 +584,15 @@ class GameState {
       };
     }
 
-    // Veto aceptado
     this.failedGovernments++;
     this.discardPile.push(...this.currentPolicyCards);
     this.currentPolicyCards = [];
     this.vetoRequested = false;
 
-    // Verificar caos
     if (this.failedGovernments >= 3) {
       return this.triggerChaos();
     }
 
-    // Avanzar al siguiente gobierno
     this.completeRound();
 
     return {
@@ -540,32 +606,27 @@ class GameState {
    * Completa una ronda y avanza al siguiente presidente
    */
   completeRound() {
-    // Guardar gobierno anterior
     const president = this.getCurrentPresident();
     const cabinetChief = this.getPlayerById(this.cabinetChiefId);
     
     this.previousPresidentId = president ? president.id : null;
     this.previousCabinetChiefId = cabinetChief ? cabinetChief.id : null;
 
-    // Limpiar estado
     this.nominatedCabinetChiefId = null;
     this.cabinetChiefId = null;
     this.votes = {};
     this.currentPower = null;
     this.vetoRequested = false;
 
-    // Avanzar presidente
     if (!this.specialElectionActive) {
       this.advancePresident();
     }
     this.specialElectionActive = false;
-
-    // Iniciar nueva nominación
     this.phase = GAME_PHASES.NOMINATION;
   }
 
   /**
-   * Avanza al siguiente presidente
+   * Avanza al siguiente presidente en la lista de jugadores
    */
   advancePresident() {
     do {
@@ -575,6 +636,7 @@ class GameState {
 
   /**
    * Obtiene el presidente actual
+   * @returns {Object|null} Jugador presidente o null
    */
   getCurrentPresident() {
     return this.players[this.presidentIndex];
@@ -582,6 +644,8 @@ class GameState {
 
   /**
    * Obtiene un jugador por ID
+   * @param {string} playerId - ID del jugador
+   * @returns {Object|undefined} Jugador encontrado
    */
   getPlayerById(playerId) {
     return this.players.find(p => p.id === playerId);
@@ -589,6 +653,7 @@ class GameState {
 
   /**
    * Obtiene todos los jugadores IA
+   * @returns {Array<Object>} Lista de jugadores IA
    */
   getAIPlayers() {
     return this.players.filter(p => p.isAI);
@@ -596,6 +661,8 @@ class GameState {
 
   /**
    * Verifica si un jugador es IA
+   * @param {string} playerId - ID del jugador
+   * @returns {boolean} True si es IA
    */
   isAIPlayer(playerId) {
     const player = this.getPlayerById(playerId);
@@ -603,10 +670,10 @@ class GameState {
   }
 
   /**
-   * Trigger caos electoral
+   * Activa el caos electoral (3 gobiernos fallidos)
+   * @returns {Object} Resultado con chaos, revealedPolicy y posiblemente gameOver
    */
   triggerChaos() {
-    // Revelar la carta superior del mazo
     if (this.deck.length === 0) {
       const result = drawPolicies(this.deck, this.discardPile);
       this.deck = result.remainingDeck;
@@ -623,7 +690,6 @@ class GameState {
 
     this.failedGovernments = 0;
 
-    // Verificar victoria
     const victory = checkVictoryCondition(this.kirchneristaPolicies, this.libertarianPolicies);
     if (victory) {
       this.gameOver = true;
@@ -646,6 +712,7 @@ class GameState {
 
   /**
    * Serializa el estado del juego para enviar a clientes
+   * @returns {Object} Estado serializado del juego
    */
   toJSON() {
     return {

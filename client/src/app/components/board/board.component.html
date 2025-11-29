@@ -113,14 +113,22 @@
           >
             <span *ngIf="i >= 2 && !hasPower(i)">⚠️</span>
             <span *ngIf="i < 2 && !hasPower(i)">✓</span>
-            <span *ngIf="hasPower(i)" class="power-icon">{{ getPowerIcon(i) }}</span>
+            <span 
+              *ngIf="hasPower(i)" 
+              class="power-icon tooltip-trigger"
+              [attr.data-tooltip]="getPowerTooltip(getPowerIcon(i))"
+            >{{ getPowerIcon(i) }}</span>
           </div>
           <div
             *ngFor="let _ of getEmptyKirchnersistaSlots(); let i = index"
             class="policy-slot empty"
             [class.has-power]="hasPowerEmpty(i)"
           >
-            <span *ngIf="hasPowerEmpty(i)" class="power-indicator">{{ getPowerIconEmpty(i) }}</span>
+            <span 
+              *ngIf="hasPowerEmpty(i)" 
+              class="power-indicator tooltip-trigger"
+              [attr.data-tooltip]="getPowerTooltip(getPowerIconEmpty(i))"
+            >{{ getPowerIconEmpty(i) }}</span>
           </div>
         </div>
       </div>

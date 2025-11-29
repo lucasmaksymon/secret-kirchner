@@ -14,11 +14,16 @@ export class ExecutivePowerComponent implements OnInit {
   selectedPlayerId: string | null = null;
   powerInfo = POWER_INFO;
 
+  peekResult$: Observable<any[] | null>;
+  investigateResult$: Observable<{playerName: string, loyalty: string} | null>;
+
   constructor(
     private gameStateService: GameStateService,
     private socketService: SocketService
   ) {
     this.gameState$ = this.gameStateService.gameState$;
+    this.peekResult$ = this.gameStateService.peekResult$;
+    this.investigateResult$ = this.gameStateService.investigateResult$;
   }
 
   ngOnInit(): void {}
@@ -29,7 +34,21 @@ export class ExecutivePowerComponent implements OnInit {
 
   getCurrentPower(): string | null {
     const state = this.gameStateService.getGameStateValue();
-    return state?.phase === 'executive_power' ? 'execution' : null; // Simplified, should come from state
+    if (state?.phase === 'executive_power' && state?.currentPower) {
+      return state.currentPower;
+    }
+    return null;
+  }
+
+  requiresPlayerSelection(): boolean {
+    const power = this.getCurrentPower();
+    return power === 'investigate' || power === 'special-election' || power === 'execution';
+  }
+
+  getPowerInfo() {
+    const power = this.getCurrentPower();
+    if (!power) return null;
+    return POWER_INFO[power as keyof typeof POWER_INFO] || null;
   }
 
   selectPlayer(playerId: string): void {
@@ -40,20 +59,35 @@ export class ExecutivePowerComponent implements OnInit {
     if (!this.isPresident()) return;
 
     const power = this.getCurrentPower();
+    if (!power) return;
     
     if (power === 'peek') {
       this.socketService.executePeek();
-    } else if (power === 'investigate' && this.selectedPlayerId) {
+    } else if (power === 'investigate') {
+      if (!this.selectedPlayerId) {
+        alert('Debes seleccionar un jugador para investigar');
+        return;
+      }
       this.socketService.executeInvestigate(this.selectedPlayerId);
-    } else if (power === 'special-election' && this.selectedPlayerId) {
+      this.selectedPlayerId = null;
+    } else if (power === 'special-election') {
+      if (!this.selectedPlayerId) {
+        alert('Debes seleccionar al próximo Presidente');
+        return;
+      }
       this.socketService.executeSpecialElection(this.selectedPlayerId);
-    } else if (power === 'execution' && this.selectedPlayerId) {
-      if (confirm('¿Estás seguro de que querés eliminar a este jugador?')) {
+      this.selectedPlayerId = null;
+    } else if (power === 'execution') {
+      if (!this.selectedPlayerId) {
+        alert('Debes seleccionar un jugador para ejecutar');
+        return;
+      }
+      const selectedPlayer = this.getEligiblePlayers().find(p => p.id === this.selectedPlayerId);
+      if (selectedPlayer && confirm(`¿Estás seguro de que querés eliminar a ${selectedPlayer.name}? Esta acción no se puede deshacer.`)) {
         this.socketService.executeExecution(this.selectedPlayerId);
+        this.selectedPlayerId = null;
       }
     }
-
-    this.selectedPlayerId = null;
   }
 
   canSelectPlayer(player: Player): boolean {

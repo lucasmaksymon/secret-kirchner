@@ -7,7 +7,8 @@
     "start": "node server/server.js",
     "dev": "nodemon server/server.js",
     "client": "cd client && npm start",
-    "build": "cd client && npm run build"
+    "build": "cd client && npm run build",
+    "dev:all": "concurrently \"npm run dev\" \"npm run client\" --names \"BACKEND,FRONTEND\" --prefix-colors \"blue,green\""
   },
   "keywords": ["juego", "deduccion-social", "kirchner", "argentina", "sátira"],
   "author": "",
@@ -19,7 +20,8 @@
     "uuid": "^9.0.0"
   },
   "devDependencies": {
-    "nodemon": "^3.0.1"
+    "nodemon": "^3.0.1",
+    "concurrently": "^8.2.2"
   }
 }
 

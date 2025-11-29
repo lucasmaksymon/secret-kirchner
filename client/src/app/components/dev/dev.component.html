@@ -1,0 +1,113 @@
+<div class="dev-container">
+  <div class="dev-sidebar">
+    <h2>🧪 Modo Desarrollo</h2>
+    <p class="dev-subtitle">Navegación de Pantallas</p>
+    
+    <div class="screen-list">
+      <div 
+        *ngFor="let screen of screens"
+        class="screen-item"
+        [class.active]="selectedScreen === screen.component"
+        (click)="navigateToScreen(screen)"
+      >
+        <span class="screen-icon">
+          {{ screen.route ? '🔗' : '📱' }}
+        </span>
+        <span class="screen-name">{{ screen.name }}</span>
+        <span *ngIf="screen.standalone" class="standalone-badge">Standalone</span>
+      </div>
+    </div>
+
+    <div class="dev-actions">
+      <button class="btn btn-secondary" (click)="router.navigate(['/'])">
+        🏠 Volver al Home
+      </button>
+    </div>
+  </div>
+
+  <div class="dev-content">
+    <div *ngIf="!selectedScreen" class="welcome-screen">
+      <h1>🧪 Modo Desarrollo</h1>
+      <p>Seleccioná una pantalla del menú lateral para verla</p>
+      <p class="text-muted">Las pantallas con 🔗 se abrirán en una nueva pestaña</p>
+      <p class="text-muted">Las pantallas con 📱 se mostrarán aquí con datos mock</p>
+      <div class="dev-info-box">
+        <h3>ℹ️ Información</h3>
+        <ul>
+          <li>Los componentes standalone se muestran con datos mock</li>
+          <li>Las rutas (Home, Lobby, Game) se abren en nueva pestaña</li>
+          <li>Los datos mock incluyen 5 jugadores de ejemplo</li>
+          <li>Puedes cambiar la fase del juego seleccionando diferentes componentes</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Standalone Components -->
+    <div *ngIf="selectedScreen === 'GameComponent'" class="component-wrapper game-wrapper">
+      <div class="dev-note">
+        <p>🎮 Componente completo del juego. Muestra el tablero, lista de jugadores, chat y modales según la fase.</p>
+      </div>
+      <app-game></app-game>
+    </div>
+
+    <div *ngIf="selectedScreen === 'BoardComponent'" class="component-wrapper">
+      <div class="dev-note">
+        <p>⚠️ Este componente requiere datos del juego. Puede mostrarse vacío si no hay un juego activo.</p>
+      </div>
+      <app-board></app-board>
+    </div>
+
+    <div *ngIf="selectedScreen === 'ChatComponent'" class="component-wrapper">
+      <div class="dev-note">
+        <p>💬 Componente de chat. Requiere conexión al servidor para funcionar completamente.</p>
+      </div>
+      <app-chat></app-chat>
+    </div>
+
+    <div *ngIf="selectedScreen === 'ExecutivePowerComponent'" class="component-wrapper">
+      <div class="dev-note">
+        <p>💼 Este componente requiere que haya un poder presidencial activo en el juego.</p>
+      </div>
+      <app-executive-power></app-executive-power>
+    </div>
+
+    <div *ngIf="selectedScreen === 'GameOverComponent'" class="component-wrapper">
+      <div class="dev-note">
+        <p>🏁 Este componente se muestra cuando el juego termina. Puede mostrarse vacío si no hay un juego finalizado.</p>
+      </div>
+      <app-game-over></app-game-over>
+    </div>
+
+    <div *ngIf="selectedScreen === 'PlayerListComponent'" class="component-wrapper">
+      <div class="dev-note">
+        <p>👥 Lista de jugadores. Requiere datos del juego para mostrar jugadores.</p>
+      </div>
+      <app-player-list></app-player-list>
+    </div>
+
+    <div *ngIf="selectedScreen === 'PolicyCardsComponent'" class="component-wrapper">
+      <div class="dev-note">
+        <p>🃏 Componente de cartas de políticas. Requiere estar en fase legislativa para funcionar.</p>
+      </div>
+      <app-policy-cards></app-policy-cards>
+    </div>
+
+    <div *ngIf="selectedScreen === 'VotingComponent'" class="component-wrapper">
+      <div class="dev-note">
+        <p>🗳️ Componente de votación. Requiere estar en fase de elección para funcionar.</p>
+      </div>
+      <app-voting></app-voting>
+    </div>
+
+    <div *ngIf="selectedScreen === 'VoiceChatComponent'" class="component-wrapper">
+      <div class="dev-note">
+        <p>🎤 Componente de chat de voz. Requiere permisos de micrófono.</p>
+      </div>
+      <app-voice-chat 
+        [roomId]="'dev-room'"
+        [playerId]="'dev-player'"
+      ></app-voice-chat>
+    </div>
+  </div>
+</div>
+

@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { SocketService } from '../../services/socket.service';
 import { RoomInfo } from '../../models/game.model';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-home',
@@ -14,6 +15,7 @@ export class HomeComponent implements OnInit {
   selectedRoomId: string | null = null;
   rooms: RoomInfo[] = [];
   showCreateRoom: boolean = false;
+  isDevelopment = environment.development;
   
   accordionStates = {
     objetivo: false,

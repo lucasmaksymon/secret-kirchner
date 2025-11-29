@@ -22,6 +22,12 @@ export class GameStateService {
   private currentCardsSubject = new BehaviorSubject<Policy[]>([]);
   public currentCards$ = this.currentCardsSubject.asObservable();
 
+  private peekResultSubject = new BehaviorSubject<Policy[] | null>(null);
+  public peekResult$ = this.peekResultSubject.asObservable();
+
+  private investigateResultSubject = new BehaviorSubject<{playerName: string, loyalty: string} | null>(null);
+  public investigateResult$ = this.investigateResultSubject.asObservable();
+
   private chatMessagesSubject = new BehaviorSubject<ChatMessage[]>([]);
   public chatMessages$ = this.chatMessagesSubject.asObservable();
 
@@ -32,30 +38,37 @@ export class GameStateService {
     this.initializeSocketListeners();
   }
 
+  /**
+   * Inicializa los listeners de Socket.IO para actualizar el estado del juego
+   */
   private initializeSocketListeners(): void {
     // Lobby events
     this.socketService.on('room-created').subscribe((data: any) => {
-      this.currentPlayerIdSubject.next(data.playerId);
-      this.gameStateSubject.next(data.gameState);
-      // Guardar en localStorage para reconexión
-      this.saveSession(data.gameState.roomId, data.playerId);
+      if (data?.playerId && data?.gameState) {
+        this.currentPlayerIdSubject.next(data.playerId);
+        this.gameStateSubject.next(data.gameState);
+        this.saveSession(data.gameState.roomId, data.playerId);
+      }
     });
 
     this.socketService.on('room-joined').subscribe((data: any) => {
-      this.currentPlayerIdSubject.next(data.playerId);
-      this.gameStateSubject.next(data.gameState);
-      // Guardar en localStorage para reconexión
-      this.saveSession(data.gameState.roomId, data.playerId);
+      if (data?.playerId && data?.gameState) {
+        this.currentPlayerIdSubject.next(data.playerId);
+        this.gameStateSubject.next(data.gameState);
+        this.saveSession(data.gameState.roomId, data.playerId);
+      }
     });
 
     this.socketService.on('room-rejoined').subscribe((data: any) => {
-      this.currentPlayerIdSubject.next(data.playerId);
-      this.gameStateSubject.next(data.gameState);
-      if (data.role) {
-        this.currentRoleSubject.next(data.role);
-      }
-      if (data.knownPlayers) {
-        this.knownPlayersSubject.next(data.knownPlayers);
+      if (data?.playerId && data?.gameState) {
+        this.currentPlayerIdSubject.next(data.playerId);
+        this.gameStateSubject.next(data.gameState);
+        if (data.role) {
+          this.currentRoleSubject.next(data.role);
+        }
+        if (data.knownPlayers) {
+          this.knownPlayersSubject.next(data.knownPlayers);
+        }
       }
     });
 
@@ -130,11 +143,22 @@ export class GameStateService {
     });
 
     this.socketService.on('peek-result').subscribe((data: any) => {
-      this.currentCardsSubject.next(data.cards);
+      if (data.cards) {
+        this.peekResultSubject.next(data.cards);
+        // Limpiar después de 10 segundos
+        setTimeout(() => this.peekResultSubject.next(null), 10000);
+      }
     });
 
     this.socketService.on('investigate-result').subscribe((data: any) => {
-      // Show investigation result to president
+      if (data.playerName && data.loyalty) {
+        this.investigateResultSubject.next({
+          playerName: data.playerName,
+          loyalty: data.loyalty
+        });
+        // Limpiar después de 10 segundos
+        setTimeout(() => this.investigateResultSubject.next(null), 10000);
+      }
     });
 
     // Veto
@@ -169,12 +193,16 @@ export class GameStateService {
     });
   }
 
-  // Helper methods
-  // Helper method to get current state value
+  /**
+   * Obtiene el valor actual del estado del juego
+   */
   getGameStateValue(): GameState | null {
     return this.gameStateSubject.value;
   }
 
+  /**
+   * Obtiene el jugador actual
+   */
   getCurrentPlayer(): Player | null {
     const gameState = this.gameStateSubject.value;
     const playerId = this.currentPlayerIdSubject.value;
@@ -184,24 +212,34 @@ export class GameStateService {
     return gameState.players.find(p => p.id === playerId) || null;
   }
 
+  /**
+   * Verifica si el jugador actual es el presidente
+   */
   isCurrentPlayerPresident(): boolean {
     const gameState = this.gameStateSubject.value;
     const player = this.getCurrentPlayer();
     
     if (!gameState || !player) return false;
     
-    return gameState.players[gameState.presidentIndex]?.id === player.id;
+    const president = gameState.players[gameState.presidentIndex];
+    return president?.id === player.id;
   }
 
+  /**
+   * Verifica si el jugador actual es el Jefe de Gabinete
+   */
   isCurrentPlayerCabinetChief(): boolean {
     const gameState = this.gameStateSubject.value;
     const player = this.getCurrentPlayer();
     
-    if (!gameState || !player) return false;
+    if (!gameState || !player || !gameState.cabinetChiefId) return false;
     
     return gameState.cabinetChiefId === player.id;
   }
 
+  /**
+   * Obtiene el presidente actual
+   */
   getPresident(): Player | null {
     const gameState = this.gameStateSubject.value;
     if (!gameState) return null;
@@ -209,6 +247,9 @@ export class GameStateService {
     return gameState.players[gameState.presidentIndex] || null;
   }
 
+  /**
+   * Obtiene el Jefe de Gabinete actual
+   */
   getCabinetChief(): Player | null {
     const gameState = this.gameStateSubject.value;
     if (!gameState || !gameState.cabinetChiefId) return null;

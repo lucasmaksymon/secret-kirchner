@@ -96,6 +96,100 @@
       color: var(--color-warning);
     }
   }
+
+  .peek-result {
+    width: 100%;
+    padding: 16px;
+    background: var(--color-bg-secondary);
+    border-radius: 8px;
+    border: 2px solid var(--color-primary);
+    margin-top: 16px;
+
+    h5 {
+      margin-bottom: 12px;
+      text-align: center;
+      color: var(--color-primary);
+    }
+
+    .peek-cards {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .peek-card {
+      position: relative;
+      padding: 16px;
+      border-radius: 8px;
+      border: 2px solid;
+      min-width: 150px;
+      text-align: center;
+      background: white;
+
+      &.kirchnerista {
+        border-color: #e74c3c;
+        background: rgba(231, 76, 60, 0.1);
+      }
+
+      &.libertario {
+        border-color: #3498db;
+        background: rgba(52, 152, 219, 0.1);
+      }
+
+      .peek-card-number {
+        position: absolute;
+        top: -10px;
+        left: -10px;
+        background: var(--color-primary);
+        color: white;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 12px;
+      }
+
+      .peek-card-icon {
+        font-size: 32px;
+        margin-bottom: 8px;
+      }
+
+      .peek-card-type {
+        font-weight: bold;
+        font-size: 12px;
+        margin-bottom: 4px;
+      }
+
+      .peek-card-name {
+        font-size: 14px;
+        color: var(--color-text-secondary);
+      }
+    }
+  }
+
+  .investigate-result {
+    width: 100%;
+    margin-top: 16px;
+
+    .alert {
+      padding: 16px;
+      border-radius: 8px;
+      border: 2px solid var(--color-info);
+
+      h5 {
+        margin-bottom: 12px;
+        color: var(--color-info);
+      }
+
+      p {
+        margin-bottom: 8px;
+      }
+    }
+  }
 }
 
 .waiting-section {

@@ -109,18 +109,22 @@ cd ..
 
 ### Ejecutar en Modo Desarrollo
 
-**Terminal 1 - Backend:**
+**Opción 1 - Comando único (recomendado):**
 ```bash
-npm run dev
+npm run dev:all
 ```
-El servidor correrá en `http://localhost:3000`
+Este comando levanta tanto el backend como el frontend en una sola terminal.
 
-**Terminal 2 - Frontend:**
+**Opción 2 - Terminales separadas:**
 ```bash
-cd client
-npm start
+# Terminal 1 - Backend
+npm run dev
+
+# Terminal 2 - Frontend
+npm run client
 ```
-El cliente Angular correrá en `http://localhost:4200`
+
+El servidor correrá en `http://localhost:3000` y el cliente en `http://localhost:4200`
 
 ### 🎮 ¡A Jugar!
 
@@ -145,8 +149,6 @@ Las IAs jugarán automáticamente:
 - Legislan según su equipo (Kirchnerista/Libertario)
 - Ejecutan poderes presidenciales inteligentemente
 - Responden con delays de 2-4 segundos (simulan pensamiento)
-
-📖 **Para más detalles:** Ver [INSTALL.md](INSTALL.md) y [TESTING.md](TESTING.md)
 
 ---
 
@@ -199,11 +201,8 @@ SecretKirchner/
 │   ├── angular.json
 │   └── package.json
 │
-├── 📄 README.md                    # Este archivo (documentación principal)
+├── 📄 README.md                    # Documentación principal
 ├── 📄 LICENSE                      # Licencia CC BY-NC-SA 4.0
-├── 📄 INSTALL.md                   # Guía de instalación
-├── 📄 CONTRIBUTING.md              # Guía de contribución + Git
-├── 📄 TESTING.md                   # Guía de testing + IAs
 ├── 📄 package.json                 # Dependencias backend
 └── 📄 .gitignore                   # Archivos ignorados por Git
 ```
@@ -218,7 +217,14 @@ SecretKirchner/
 
 ## 🤝 Contribuir
 
-¡Las contribuciones son bienvenidas! Por favor lee [CONTRIBUTING.md](CONTRIBUTING.md) para más detalles.
+¡Las contribuciones son bienvenidas! Este es un proyecto de código abierto.
+
+### Cómo Contribuir
+1. Fork el repositorio
+2. Crea una rama para tu feature: `git checkout -b feature/nombre-descriptivo`
+3. Realiza tus cambios y commit: `git commit -m "feat: descripción"`
+4. Push a tu fork: `git push origin feature/nombre-descriptivo`
+5. Crea un Pull Request
 
 ### Ideas para Contribuir
 - 🐛 Reportar bugs
@@ -228,20 +234,11 @@ SecretKirchner/
 - 🧪 Escribir tests
 - 📚 Mejorar la documentación
 
----
-
-## 🧪 Testing
-
-Para probar el juego exhaustivamente, consulta [TESTING.md](TESTING.md) con una lista completa de casos de prueba.
-
----
-
-## 📚 Documentación Adicional
-
-- 📥 [Guía de Instalación](INSTALL.md) - Instalación paso a paso y troubleshooting
-- 🧪 [Guía de Testing](TESTING.md) - Checklist completo de pruebas + testing de IAs
-- 🤝 [Guía de Contribución](CONTRIBUTING.md) - Cómo contribuir + configuración de Git
-- ⚖️ [Licencia](LICENSE) - Términos de uso (CC BY-NC-SA 4.0)
+### Guía de Estilo
+- Usa ES6+ cuando sea posible
+- Nombres descriptivos para variables y funciones
+- Comentarios JSDoc para funciones públicas
+- Mensajes de commit en español con prefijos: `feat:`, `fix:`, `docs:`, `style:`
 
 ---
 
@@ -276,6 +273,23 @@ Esto significa:
 - ✅ **Compartir Igual**: Si remezclas, debes distribuir bajo la misma licencia
 
 Para más detalles: [Ver licencia completa](https://creativecommons.org/licenses/by-nc-sa/4.0/)
+
+---
+
+## 🚀 Deployment (Subir a Internet)
+
+¿Quieres subir el juego para que otros puedan jugarlo? Tenemos una **guía paso a paso completa** para deployment gratuito:
+
+👉 **[Guía Completa de Deployment en Render](RENDER-GUIDE.md)**
+
+**Render** es la opción recomendada porque:
+- ✅ Tier gratuito permanente
+- ✅ Soporte para WebSockets (Socket.IO)
+- ✅ Deploy automático desde GitHub
+- ✅ HTTPS/SSL automático
+- ✅ Configuración muy sencilla
+
+**Nota:** El servicio se "duerme" después de 15 minutos de inactividad, pero se despierta automáticamente en ~30 segundos.
 
 ---
 

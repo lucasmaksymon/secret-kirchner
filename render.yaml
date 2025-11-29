@@ -1,0 +1,29 @@
+services:
+  - type: web
+    name: secreto-kirchner-backend
+    env: node
+    buildCommand: npm install && cd client && npm install && npm run build
+    startCommand: node server/server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      # Actualiza estas URLs después de crear el frontend
+      - key: CORS_ORIGIN
+        value: https://secreto-kirchner-frontend.onrender.com
+      - key: CLIENT_URL
+        value: https://secreto-kirchner-frontend.onrender.com
+
+  - type: web
+    name: secreto-kirchner-frontend
+    env: static
+    buildCommand: cd client && npm install && npm run build
+    staticPublishPath: client/dist/secreto-kirchner-client
+    envVars:
+      # Actualiza esta URL después de crear el backend
+      - key: SERVER_URL
+        value: https://secreto-kirchner-backend.onrender.com
+      - key: SOCKET_URL
+        value: https://secreto-kirchner-backend.onrender.com
+

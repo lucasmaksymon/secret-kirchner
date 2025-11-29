@@ -1,6 +1,6 @@
 /**
- * Manejo de Socket.IO para El Secreto de Kirchner
- * Gestiona toda la comunicación en tiempo real
+ * @fileoverview Manejo de Socket.IO para El Secreto de Kirchner
+ * @module socket/gameSocket
  */
 
 const { GameState, GAME_PHASES } = require('../game/gameState');
@@ -17,81 +17,119 @@ const {
   handleAITurn 
 } = require('../game/aiController');
 const { generateAIName, AI_DIFFICULTY } = require('../game/aiPlayer');
+const { GAME_CONFIG, SOCKET_EVENTS, ERROR_MESSAGES } = require('../config/constants');
+const { createLogger } = require('../utils/logger');
 
-// Almacenamiento de salas en memoria
+const logger = createLogger('Socket');
+
+/** @type {Map<string, GameState>} Almacenamiento de salas en memoria */
 const rooms = new Map();
 
 /**
  * Inicializa Socket.IO con todos los event handlers
+ * @param {import('socket.io').Server} io - Instancia de Socket.IO server
  */
 function initializeSocket(io) {
   io.on('connection', (socket) => {
-    console.log(`🔌 Jugador conectado: ${socket.id}`);
+    logger.info(`Jugador conectado: ${socket.id}`);
 
-    // ==================== LOBBY ====================
+    /**
+     * Crea una nueva sala de juego
+     * @param {Object} data - Datos de la sala
+     * @param {string} data.roomName - Nombre de la sala
+     * @param {string} data.playerName - Nombre del jugador host
+     */
+    socket.on(SOCKET_EVENTS.CREATE_ROOM, (data) => {
+      try {
+        const { roomName, playerName } = data || {};
+        
+        if (!roomName || !playerName) {
+          socket.emit('error', { message: 'Nombre de sala y jugador son requeridos' });
+          return;
+        }
 
-    // Crear sala
-    socket.on('create-room', (data) => {
-      const { roomName, playerName } = data;
-      const roomId = generateRoomId();
-      
-      const gameState = new GameState(roomId, roomName, null);
-      const result = gameState.addPlayer(socket.id, playerName);
-      
-      if (result.success) {
-        gameState.hostId = result.player.id;
-        rooms.set(roomId, gameState);
-        socket.join(roomId);
-        socket.data.roomId = roomId;
-        socket.data.playerId = result.player.id;
+        const roomId = generateRoomId();
+        const gameState = new GameState(roomId, roomName, null);
+        const result = gameState.addPlayer(socket.id, playerName);
         
-        socket.emit('room-created', {
-          roomId: roomId,
-          playerId: result.player.id,
-          gameState: gameState.toJSON()
-        });
-        
-        console.log(`🎮 Sala creada: ${roomName} (${roomId})`);
-      } else {
-        socket.emit('error', { message: result.message });
+        if (result.success) {
+          gameState.hostId = result.player.id;
+          rooms.set(roomId, gameState);
+          socket.join(roomId);
+          socket.data.roomId = roomId;
+          socket.data.playerId = result.player.id;
+          
+          socket.emit('room-created', {
+            roomId: roomId,
+            playerId: result.player.id,
+            gameState: gameState.toJSON()
+          });
+          
+          logger.info(`Sala creada: ${roomName} (${roomId})`);
+        } else {
+          socket.emit('error', { message: result.message });
+        }
+      } catch (error) {
+        logger.error('Error al crear sala:', error);
+        socket.emit('error', { message: 'Error al crear la sala' });
       }
     });
 
-    // Unirse a sala
-    socket.on('join-room', (data) => {
-      const { roomId, playerName } = data;
-      const gameState = rooms.get(roomId);
-      
-      if (!gameState) {
-        socket.emit('error', { message: 'Sala no encontrada' });
-        return;
-      }
-      
-      const result = gameState.addPlayer(socket.id, playerName, false);
-      
-      if (result.success) {
-        socket.join(roomId);
-        socket.data.roomId = roomId;
-        socket.data.playerId = result.player.id;
+    /**
+     * Permite a un jugador unirse a una sala existente
+     * @param {Object} data - Datos de unión
+     * @param {string} data.roomId - ID de la sala
+     * @param {string} data.playerName - Nombre del jugador
+     */
+    socket.on(SOCKET_EVENTS.JOIN_ROOM, (data) => {
+      try {
+        const { roomId, playerName } = data || {};
         
-        socket.emit('room-joined', {
-          playerId: result.player.id,
-          gameState: gameState.toJSON()
-        });
+        if (!roomId || !playerName) {
+          socket.emit('error', { message: 'ID de sala y nombre de jugador son requeridos' });
+          return;
+        }
+
+        const gameState = rooms.get(roomId);
         
-        // Notificar a todos
-        io.to(roomId).emit('player-joined', {
-          player: result.player,
-          gameState: gameState.toJSON()
-        });
+        if (!gameState) {
+          socket.emit('error', { message: ERROR_MESSAGES.ROOM_NOT_FOUND });
+          return;
+        }
         
-        console.log(`👤 ${playerName} se unió a ${roomId}`);
-      } else {
-        socket.emit('error', { message: result.message });
+        const result = gameState.addPlayer(socket.id, playerName, false);
+        
+        if (result.success) {
+          socket.join(roomId);
+          socket.data.roomId = roomId;
+          socket.data.playerId = result.player.id;
+          
+          socket.emit('room-joined', {
+            playerId: result.player.id,
+            gameState: gameState.toJSON()
+          });
+          
+          io.to(roomId).emit('player-joined', {
+            player: result.player,
+            gameState: gameState.toJSON()
+          });
+          
+          logger.info(`${playerName} se unió a ${roomId}`);
+        } else {
+          socket.emit('error', { message: result.message });
+        }
+      } catch (error) {
+        logger.error('Error al unirse a sala:', error);
+        socket.emit('error', { message: 'Error al unirse a la sala' });
       }
     });
 
-    // Reconectar a sala existente
+    /**
+     * Permite a un jugador reconectarse a una sala existente
+     * @param {Object} data - Datos de reconexión
+     * @param {string} data.roomId - ID de la sala
+     * @param {string} data.playerId - ID del jugador
+     */
     socket.on('rejoin-room', (data) => {
       const { roomId, playerId } = data;
       const gameState = rooms.get(roomId);
@@ -101,7 +139,6 @@ function initializeSocket(io) {
         return;
       }
 
-      // Buscar al jugador por su ID original
       const player = gameState.getPlayerById(playerId);
       
       if (!player) {
@@ -109,23 +146,19 @@ function initializeSocket(io) {
         return;
       }
 
-      // Actualizar el socketId del jugador
       player.socketId = socket.id;
       socket.data.roomId = roomId;
       socket.data.playerId = playerId;
       socket.join(roomId);
 
-      // Preparar datos de respuesta
       const responseData = {
         playerId: player.id,
         gameState: gameState.toJSON()
       };
 
-      // Si el juego ya comenzó, enviar también el rol y jugadores conocidos
       if (gameState.gameStarted && player.role) {
         responseData.role = player.role;
         
-        // Calcular jugadores conocidos
         if (player.role.initialKnowledge) {
           const knownPlayers = player.role.initialKnowledge
             .map((knownId) => {
@@ -148,389 +181,444 @@ function initializeSocket(io) {
 
       socket.emit('room-rejoined', responseData);
 
-      // Notificar a otros jugadores
       socket.to(roomId).emit('player-reconnected', {
         playerName: player.name,
         message: `${player.name} se reconectó`
       });
 
-      console.log(`🔄 Jugador ${player.name} se reconectó a sala ${roomId}`);
+      logger.info(`Jugador ${player.name} se reconectó a sala ${roomId}`);
     });
 
-    // Agregar IA a la sala
-    socket.on('add-ai', (data) => {
-      const { difficulty } = data || {};
-      const roomId = socket.data.roomId;
-      const gameState = rooms.get(roomId);
-      
-      console.log(`🤖 Intentando agregar IA. Jugadores actuales: ${gameState?.players.length || 0}`);
-      
-      if (!gameState) {
-        socket.emit('error', { message: 'Sala no encontrada' });
-        return;
-      }
-      
-      // Verificar que es el host
-      const player = gameState.getPlayerById(socket.data.playerId);
-      if (!player || gameState.hostId !== player.id) {
-        console.log(`❌ Permiso denegado: No es el host`);
-        socket.emit('error', { message: 'Solo el host puede agregar IAs' });
-        return;
-      }
-      
-      if (gameState.gameStarted) {
-        console.log(`❌ Juego ya iniciado`);
-        socket.emit('error', { message: 'No se pueden agregar IAs una vez iniciado el juego' });
-        return;
-      }
-      
-      // Generar nombre único para la IA
-      let aiName;
-      let aiIndex = 0;
-      let nameExists = true;
-      
-      // Buscar un nombre que no exista
-      while (nameExists && aiIndex < 50) {
-        aiName = generateAIName(aiIndex);
-        nameExists = gameState.players.some(p => p.name === aiName);
-        if (nameExists) {
-          aiIndex++;
-        }
-      }
-      
-      // Si todos los nombres están ocupados, usar timestamp
-      if (nameExists) {
-        aiName = `Bot IA ${Date.now() % 10000}`;
-      }
-      
-      console.log(`🎲 Intentando agregar IA "${aiName}". Total jugadores: ${gameState.players.length}/${gameState.settings.maxPlayers}`);
-      
-      const result = gameState.addPlayer(`ai-${Date.now()}`, aiName, true);
-      
-      if (result.success) {
-        // Crear instancia de IA con dificultad especificada
-        const aiDifficulty = difficulty || AI_DIFFICULTY.MEDIUM;
-        createAIInstance(result.player.id, aiDifficulty);
+    /**
+     * Agrega un jugador IA a la sala
+     * @param {Object} data - Datos de la IA
+     * @param {string} [data.difficulty] - Dificultad de la IA ('easy' | 'medium' | 'hard')
+     */
+    socket.on(SOCKET_EVENTS.ADD_AI, (data) => {
+      try {
+        const { difficulty } = data || {};
+        const roomId = socket.data.roomId;
+        const gameState = rooms.get(roomId);
         
-        console.log(`✅ IA ${aiName} agregada exitosamente. Total jugadores: ${gameState.players.length}`);
-        
-        // Notificar a todos
-        io.to(roomId).emit('player-joined', {
-          player: result.player,
-          gameState: gameState.toJSON()
-        });
-        
-        socket.emit('ai-added', {
-          player: result.player,
-          gameState: gameState.toJSON(),
-          message: `IA ${aiName} agregada`
-        });
-        
-        console.log(`🤖 IA ${aiName} agregada a ${roomId}`);
-      } else {
-        console.log(`❌ Error al agregar IA: ${result.message}`);
-        socket.emit('error', { message: result.message });
-      }
-    });
-
-    // Remover IA de la sala
-    socket.on('remove-ai', (data) => {
-      const { aiPlayerId } = data;
-      const roomId = socket.data.roomId;
-      const gameState = rooms.get(roomId);
-      
-      console.log(`🗑️ Intentando remover IA: ${aiPlayerId}`);
-      
-      if (!gameState) {
-        socket.emit('error', { message: 'Sala no encontrada' });
-        return;
-      }
-      
-      console.log(`📊 Jugadores antes de remover: ${gameState.players.length}`);
-      console.log(`👥 Lista de jugadores: ${gameState.players.map(p => `${p.name} (${p.isAI ? 'IA' : 'Humano'})`).join(', ')}`);
-      
-      // Verificar que es el host
-      const player = gameState.getPlayerById(socket.data.playerId);
-      if (!player || gameState.hostId !== player.id) {
-        console.log(`❌ Permiso denegado: No es el host`);
-        socket.emit('error', { message: 'Solo el host puede remover IAs' });
-        return;
-      }
-      
-      const aiPlayer = gameState.getPlayerById(aiPlayerId);
-      if (!aiPlayer) {
-        console.log(`❌ Jugador no encontrado: ${aiPlayerId}`);
-        socket.emit('error', { message: 'Jugador no encontrado' });
-        return;
-      }
-      
-      if (!aiPlayer.isAI) {
-        console.log(`❌ El jugador no es una IA: ${aiPlayer.name}`);
-        socket.emit('error', { message: 'El jugador no es una IA' });
-        return;
-      }
-      
-      console.log(`🎯 Removiendo IA: ${aiPlayer.name} (socketId: ${aiPlayer.socketId})`);
-      
-      const removedPlayer = gameState.removePlayer(aiPlayer.socketId);
-      if (removedPlayer) {
-        removeAIInstance(aiPlayerId);
-        
-        console.log(`✅ IA removida exitosamente. Total jugadores: ${gameState.players.length}`);
-        console.log(`👥 Lista de jugadores después: ${gameState.players.map(p => `${p.name} (${p.isAI ? 'IA' : 'Humano'})`).join(', ')}`);
-        
-        io.to(roomId).emit('player-left', {
-          playerName: removedPlayer.name,
-          gameState: gameState.toJSON()
-        });
-        
-        console.log(`🤖 IA ${removedPlayer.name} removida de ${roomId}`);
-      } else {
-        console.log(`❌ No se pudo remover la IA`);
-        socket.emit('error', { message: 'No se pudo remover la IA' });
-      }
-    });
-
-    // Obtener lista de salas
-    socket.on('get-rooms', () => {
-      const roomList = Array.from(rooms.values())
-        .filter(room => !room.gameStarted)
-        .map(room => ({
-          roomId: room.roomId,
-          roomName: room.roomName,
-          playerCount: room.players.length,
-          maxPlayers: room.settings.maxPlayers
-        }));
-      
-      socket.emit('rooms-list', roomList);
-    });
-
-    // Iniciar juego
-    socket.on('start-game', () => {
-      const roomId = socket.data.roomId;
-      const gameState = rooms.get(roomId);
-      
-      if (!gameState) {
-        socket.emit('error', { message: 'Sala no encontrada' });
-        return;
-      }
-      
-      // Verificar que es el host
-      const player = gameState.getPlayerById(socket.data.playerId);
-      if (!player || gameState.hostId !== player.id) {
-        socket.emit('error', { message: 'Solo el host puede iniciar el juego' });
-        return;
-      }
-      
-      const result = gameState.startGame();
-      
-      if (result.success) {
-        // Enviar roles a cada jugador (información privada)
-        gameState.players.forEach(p => {
-          const playerSocket = io.sockets.sockets.get(p.socketId);
-          if (playerSocket) {
-            const knownPlayers = result.knowledge[p.id].knows;
-            playerSocket.emit('role-assigned', {
-              role: p.role,
-              knownPlayers: knownPlayers
-            });
-          }
-        });
-        
-        io.to(roomId).emit('game-started', {
-          gameState: gameState.toJSON(),
-          message: result.message
-        });
-        
-        // Iniciar automáticamente la fase de nominación
-        gameState.startNominationPhase();
-        io.to(roomId).emit('game-update', {
-          gameState: gameState.toJSON(),
-          message: 'Fase de nominación'
-        });
-        
-        // Si el presidente es IA, iniciar su turno
-        setTimeout(() => {
-          const president = gameState.getCurrentPresident();
-          if (president && president.isAI) {
-            handleAITurn(io, roomId, gameState, GAME_PHASES.NOMINATION);
-          }
-        }, 1000);
-        
-        console.log(`🎮 Juego iniciado en sala ${roomId}`);
-      } else {
-        socket.emit('error', { message: result.message });
-      }
-    });
-
-    // ==================== NOMINACIÓN ====================
-
-    // Nominar Jefe de Gabinete
-    socket.on('nominate-cabinet-chief', (data) => {
-      const { cabinetChiefId } = data;
-      const roomId = socket.data.roomId;
-      const gameState = rooms.get(roomId);
-      
-      if (!gameState) return;
-      
-      const result = gameState.nominateCabinetChief(socket.data.playerId, cabinetChiefId);
-      
-      if (result.success) {
-        io.to(roomId).emit('cabinet-chief-nominated', {
-          cabinetChiefId: result.cabinetChiefId,
-          gameState: gameState.toJSON(),
-          message: result.message
-        });
-        
-        // Iniciar votación de IAs
-        handleAITurn(io, roomId, gameState, GAME_PHASES.ELECTION);
-      } else {
-        socket.emit('error', { message: result.message });
-      }
-    });
-
-    // ==================== VOTACIÓN ====================
-
-    socket.on('cast-vote', (data) => {
-      const { vote } = data; // true = Ja!, false = Nein!
-      const roomId = socket.data.roomId;
-      const gameState = rooms.get(roomId);
-      
-      if (!gameState) return;
-      
-      const result = gameState.castVote(socket.data.playerId, vote);
-      
-      if (result.success) {
-        const voteCount = Object.keys(gameState.votes).length;
-        
-        // Notificar que se emitió un voto (sin revelar cuál)
-        io.to(roomId).emit('vote-cast', {
-          playerId: socket.data.playerId,
-          voteCount: voteCount,
-          totalVoters: gameState.alivePlayers.length
-        });
-        
-        console.log(`📊 Votos: ${voteCount}/${gameState.alivePlayers.length}`);
-        
-        // Si todos ya votaron, procesar resultado inmediatamente
-        if (voteCount === gameState.alivePlayers.length) {
-          console.log('✅ Todos han votado después del jugador humano, procesando...');
-          const { processVotingResult } = require('../game/aiController');
-          processVotingResult(io, roomId, gameState);
-        } else {
-          // Procesar votos de IAs si hay alguna que no haya votado
-          handleAITurn(io, roomId, gameState, GAME_PHASES.ELECTION);
-        }
-      } else {
-        socket.emit('error', { message: result.message });
-      }
-    });
-
-    // ==================== LEGISLACIÓN ====================
-
-    socket.on('president-discard', (data) => {
-      const { cardIndex } = data;
-      const roomId = socket.data.roomId;
-      const gameState = rooms.get(roomId);
-      
-      if (!gameState) {
-        console.error('❌ GameState no encontrado en president-discard');
-        return;
-      }
-      
-      console.log(`📋 Presidente descartando carta ${cardIndex}`);
-      
-      const result = gameState.presidentDiscardCard(cardIndex);
-      
-      if (result.success) {
-        // Notificar a todos que el presidente descartó
-        io.to(roomId).emit('president-discarded', {
-          gameState: gameState.toJSON(),
-          message: 'El Presidente descartó una carta'
-        });
-        
-        const cabinetChief = gameState.getPlayerById(gameState.cabinetChiefId);
-        
-        console.log(`👔 Jefe de Gabinete: ${cabinetChief.name} (IA: ${cabinetChief.isAI})`);
-        
-        // Si el Jefe de Gabinete es IA, manejarlo automáticamente
-        if (cabinetChief.isAI) {
-          console.log('🤖 Jefe de Gabinete IA tomará decisión automática');
-          handleAITurn(io, roomId, gameState, GAME_PHASES.LEGISLATIVE_CABINET);
-        } else {
-          // Enviar las 2 cartas restantes al Jefe de Gabinete humano
-          const cabinetChiefSocket = io.sockets.sockets.get(cabinetChief.socketId);
-          
-          if (cabinetChiefSocket) {
-            cabinetChiefSocket.emit('receive-policies', {
-              cards: gameState.currentPolicyCards,
-              vetoUnlocked: gameState.vetoUnlocked
-            });
-            console.log(`📤 2 cartas enviadas al Jefe de Gabinete humano: ${cabinetChief.name}`);
-          } else {
-            console.error(`❌ Socket del Jefe de Gabinete no encontrado: ${cabinetChief.socketId}`);
-          }
-        }
-      } else {
-        console.error(`❌ Error al descartar carta: ${result.message}`);
-        socket.emit('error', { message: result.message });
-      }
-    });
-
-    socket.on('cabinet-chief-enact', (data) => {
-      const { cardIndex } = data;
-      const roomId = socket.data.roomId;
-      const gameState = rooms.get(roomId);
-      
-      if (!gameState) {
-        console.error('❌ GameState no encontrado en cabinet-chief-enact');
-        return;
-      }
-      
-      console.log(`📜 Jefe de Gabinete promulgando carta ${cardIndex}`);
-      
-      const result = gameState.cabinetChiefEnactPolicy(cardIndex);
-      
-      if (result.success) {
-        console.log(`✅ Decreto promulgado: ${result.enactedPolicy.type}`);
-        
-        io.to(roomId).emit('policy-enacted', {
-          policy: result.enactedPolicy,
-          kirchneristaPolicies: gameState.kirchneristaPolicies,
-          libertarianPolicies: gameState.libertarianPolicies,
-          gameState: gameState.toJSON()
-        });
-        
-        // Verificar game over
-        if (result.gameOver) {
-          console.log(`🏁 Game Over: ${result.winner} gana`);
-          io.to(roomId).emit('game-over', {
-            winner: result.winner,
-            reason: result.winReason,
-            gameState: gameState.toJSON()
-          });
+        if (!gameState) {
+          socket.emit('error', { message: ERROR_MESSAGES.ROOM_NOT_FOUND });
           return;
         }
         
-        // Completar ronda automáticamente
-        console.log('✅ Decreto promulgado, completando ronda...');
-        gameState.completeRound();
+        // Verificar que es el host
+        const player = getValidatedPlayer(gameState, socket.data.playerId);
+        if (!player || !isHost(gameState, player.id)) {
+          socket.emit('error', { message: ERROR_MESSAGES.NOT_HOST });
+          return;
+        }
         
-        io.to(roomId).emit('game-update', {
-          gameState: gameState.toJSON(),
-          message: 'Decreto promulgado - Siguiente presidente'
-        });
+        if (gameState.gameStarted) {
+          socket.emit('error', { message: ERROR_MESSAGES.CANNOT_ADD_AI_AFTER_START });
+          return;
+        }
         
-        // Continuar con el siguiente presidente si es IA
-        setTimeout(() => {
-          const president = gameState.getCurrentPresident();
-          if (president && president.isAI) {
-            handleAITurn(io, roomId, gameState, GAME_PHASES.NOMINATION);
+        let aiName;
+        let aiIndex = 0;
+        let nameExists = true;
+        
+        while (nameExists && aiIndex < GAME_CONFIG.MAX_AI_NAME_ATTEMPTS) {
+          aiName = generateAIName(aiIndex);
+          nameExists = gameState.players.some(p => p.name === aiName);
+          if (nameExists) {
+            aiIndex++;
           }
-        }, 1000);
-      } else {
-        console.error(`❌ Error al promulgar decreto: ${result.message}`);
-        socket.emit('error', { message: result.message });
+        }
+        
+        if (nameExists) {
+          aiName = `Bot IA ${Date.now() % 10000}`;
+        }
+        
+        const result = gameState.addPlayer(`ai-${Date.now()}`, aiName, true);
+        
+        if (result.success) {
+          const aiDifficulty = difficulty || AI_DIFFICULTY.MEDIUM;
+          createAIInstance(result.player.id, aiDifficulty);
+          
+          io.to(roomId).emit('player-joined', {
+            player: result.player,
+            gameState: gameState.toJSON()
+          });
+          
+          socket.emit('ai-added', {
+            player: result.player,
+            gameState: gameState.toJSON(),
+            message: `IA ${aiName} agregada`
+          });
+          
+          logger.info(`IA ${aiName} agregada a ${roomId}`);
+        } else {
+          socket.emit('error', { message: result.message });
+        }
+      } catch (error) {
+        logger.error('Error al agregar IA:', error);
+        socket.emit('error', { message: 'Error al agregar IA' });
+      }
+    });
+
+    /**
+     * Remueve un jugador IA de la sala
+     * @param {Object} data - Datos de la IA
+     * @param {string} data.aiPlayerId - ID del jugador IA a remover
+     */
+    socket.on(SOCKET_EVENTS.REMOVE_AI, (data) => {
+      try {
+        const { aiPlayerId } = data || {};
+        const roomId = socket.data.roomId;
+        const gameState = rooms.get(roomId);
+        
+        if (!gameState) {
+          socket.emit('error', { message: ERROR_MESSAGES.ROOM_NOT_FOUND });
+          return;
+        }
+        
+        if (!aiPlayerId) {
+          socket.emit('error', { message: 'ID de jugador IA requerido' });
+          return;
+        }
+        
+        // Verificar que es el host
+        const player = getValidatedPlayer(gameState, socket.data.playerId);
+        if (!player || !isHost(gameState, player.id)) {
+          socket.emit('error', { message: ERROR_MESSAGES.NOT_HOST });
+          return;
+        }
+        
+        const aiPlayer = gameState.getPlayerById(aiPlayerId);
+        if (!aiPlayer) {
+          socket.emit('error', { message: ERROR_MESSAGES.AI_NOT_FOUND });
+          return;
+        }
+        
+        if (!aiPlayer.isAI) {
+          socket.emit('error', { message: ERROR_MESSAGES.NOT_AI });
+          return;
+        }
+        
+        const removedPlayer = gameState.removePlayer(aiPlayer.socketId);
+        if (removedPlayer) {
+          removeAIInstance(aiPlayerId);
+          
+          io.to(roomId).emit('player-left', {
+            playerName: removedPlayer.name,
+            gameState: gameState.toJSON()
+          });
+          
+          logger.info(`IA ${removedPlayer.name} removida de ${roomId}`);
+        } else {
+          socket.emit('error', { message: 'No se pudo remover la IA' });
+        }
+      } catch (error) {
+        logger.error('Error al remover IA:', error);
+        socket.emit('error', { message: 'Error al remover IA' });
+      }
+    });
+
+    /**
+     * Obtiene la lista de salas disponibles
+     */
+    socket.on(SOCKET_EVENTS.GET_ROOMS, () => {
+      try {
+        const roomList = Array.from(rooms.values())
+          .filter(room => !room.gameStarted)
+          .map(room => ({
+            roomId: room.roomId,
+            roomName: room.roomName,
+            playerCount: room.players.length,
+            maxPlayers: room.settings.maxPlayers
+          }));
+        
+        socket.emit('rooms-list', roomList);
+      } catch (error) {
+        logger.error('Error al obtener lista de salas:', error);
+        socket.emit('error', { message: 'Error al obtener lista de salas' });
+      }
+    });
+
+    /**
+     * Inicia el juego en la sala actual
+     */
+    socket.on(SOCKET_EVENTS.START_GAME, () => {
+      try {
+        const roomId = socket.data.roomId;
+        const gameState = rooms.get(roomId);
+        
+        if (!gameState) {
+          socket.emit('error', { message: ERROR_MESSAGES.ROOM_NOT_FOUND });
+          return;
+        }
+        
+        // Verificar que es el host
+        const player = getValidatedPlayer(gameState, socket.data.playerId);
+        if (!player || !isHost(gameState, player.id)) {
+          socket.emit('error', { message: ERROR_MESSAGES.NOT_HOST });
+          return;
+        }
+        
+        const result = gameState.startGame();
+        
+        if (result.success) {
+          gameState.players.forEach(p => {
+            const playerSocket = io.sockets.sockets.get(p.socketId);
+            if (playerSocket) {
+              const knownPlayers = result.knowledge[p.id].knows;
+              playerSocket.emit('role-assigned', {
+                role: p.role,
+                knownPlayers: knownPlayers
+              });
+            }
+          });
+          
+          io.to(roomId).emit('game-started', {
+            gameState: gameState.toJSON(),
+            message: result.message
+          });
+          
+          gameState.startNominationPhase();
+          io.to(roomId).emit('game-update', {
+            gameState: gameState.toJSON(),
+            message: 'Fase de nominación'
+          });
+          
+          setTimeout(() => {
+            const president = gameState.getCurrentPresident();
+            if (president && president.isAI) {
+              handleAITurn(io, roomId, gameState, GAME_PHASES.NOMINATION);
+            }
+          }, 1000);
+          
+          logger.info(`Juego iniciado en sala ${roomId}`);
+        } else {
+          socket.emit('error', { message: result.message });
+        }
+      } catch (error) {
+        logger.error('Error al iniciar juego:', error);
+        socket.emit('error', { message: 'Error al iniciar el juego' });
+      }
+    });
+
+    /**
+     * Nomina un Jefe de Gabinete
+     * @param {Object} data - Datos de nominación
+     * @param {string} data.cabinetChiefId - ID del jugador a nominar
+     */
+    socket.on(SOCKET_EVENTS.NOMINATE_CABINET_CHIEF, (data) => {
+      try {
+        const { cabinetChiefId } = data || {};
+        const roomId = socket.data.roomId;
+        const gameState = rooms.get(roomId);
+        
+        if (!gameState) {
+          socket.emit('error', { message: ERROR_MESSAGES.ROOM_NOT_FOUND });
+          return;
+        }
+        
+        if (!cabinetChiefId) {
+          socket.emit('error', { message: 'ID de Jefe de Gabinete requerido' });
+          return;
+        }
+        
+        const result = gameState.nominateCabinetChief(socket.data.playerId, cabinetChiefId);
+        
+        if (result.success) {
+          io.to(roomId).emit('cabinet-chief-nominated', {
+            cabinetChiefId: result.cabinetChiefId,
+            gameState: gameState.toJSON(),
+            message: result.message
+          });
+          
+          handleAITurn(io, roomId, gameState, GAME_PHASES.ELECTION);
+        } else {
+          socket.emit('error', { message: result.message });
+        }
+      } catch (error) {
+        logger.error('Error al nominar Jefe de Gabinete:', error);
+        socket.emit('error', { message: 'Error al nominar Jefe de Gabinete' });
+      }
+    });
+
+    /**
+     * Emite un voto en la elección actual
+     * @param {Object} data - Datos del voto
+     * @param {boolean} data.vote - true para "Ja!" (sí), false para "Nein!" (no)
+     */
+    socket.on(SOCKET_EVENTS.CAST_VOTE, (data) => {
+      try {
+        const { vote } = data || {};
+        const roomId = socket.data.roomId;
+        const gameState = rooms.get(roomId);
+        
+        if (!gameState) {
+          socket.emit('error', { message: ERROR_MESSAGES.ROOM_NOT_FOUND });
+          return;
+        }
+        
+        if (typeof vote !== 'boolean') {
+          socket.emit('error', { message: 'Voto inválido' });
+          return;
+        }
+        
+        const result = gameState.castVote(socket.data.playerId, vote);
+        
+        if (result.success) {
+          const voteCount = Object.keys(gameState.votes).length;
+          
+          io.to(roomId).emit('vote-cast', {
+            playerId: socket.data.playerId,
+            voteCount: voteCount,
+            totalVoters: gameState.alivePlayers.length
+          });
+          
+          if (voteCount === gameState.alivePlayers.length) {
+            const { processVotingResult } = require('../game/aiController');
+            processVotingResult(io, roomId, gameState);
+          } else {
+            handleAITurn(io, roomId, gameState, GAME_PHASES.ELECTION);
+          }
+        } else {
+          socket.emit('error', { message: result.message });
+        }
+      } catch (error) {
+        logger.error('Error al emitir voto:', error);
+        socket.emit('error', { message: 'Error al emitir voto' });
+      }
+    });
+
+    /**
+     * El presidente descarta una carta de las 3 recibidas
+     * @param {Object} data - Datos de descarte
+     * @param {number} data.cardIndex - Índice de la carta a descartar (0-2)
+     */
+    socket.on(SOCKET_EVENTS.PRESIDENT_DISCARD, (data) => {
+      try {
+        const { cardIndex } = data || {};
+        const roomId = socket.data.roomId;
+        const gameState = rooms.get(roomId);
+        
+        if (!gameState) {
+          socket.emit('error', { message: ERROR_MESSAGES.ROOM_NOT_FOUND });
+          return;
+        }
+        
+        if (typeof cardIndex !== 'number' || cardIndex < 0) {
+          socket.emit('error', { message: 'Índice de carta inválido' });
+          return;
+        }
+        
+        const result = gameState.presidentDiscardCard(cardIndex);
+        
+        if (result.success) {
+          io.to(roomId).emit('president-discarded', {
+            gameState: gameState.toJSON(),
+            message: 'El Presidente descartó una carta'
+          });
+          
+          const cabinetChief = gameState.getPlayerById(gameState.cabinetChiefId);
+          
+          if (cabinetChief && cabinetChief.isAI) {
+            handleAITurn(io, roomId, gameState, GAME_PHASES.LEGISLATIVE_CABINET);
+          } else if (cabinetChief) {
+            const cabinetChiefSocket = io.sockets.sockets.get(cabinetChief.socketId);
+            
+            if (cabinetChiefSocket) {
+              cabinetChiefSocket.emit('receive-policies', {
+                cards: gameState.currentPolicyCards,
+                vetoUnlocked: gameState.vetoUnlocked
+              });
+            } else {
+              logger.warn(`Socket del Jefe de Gabinete no encontrado: ${cabinetChief.socketId}`);
+            }
+          }
+        } else {
+          socket.emit('error', { message: result.message });
+        }
+      } catch (error) {
+        logger.error('Error al descartar carta:', error);
+        socket.emit('error', { message: 'Error al descartar carta' });
+      }
+    });
+
+    /**
+     * El Jefe de Gabinete promulga una de las 2 cartas restantes
+     * @param {Object} data - Datos de promulgación
+     * @param {number} data.cardIndex - Índice de la carta a promulgar (0-1)
+     */
+    socket.on(SOCKET_EVENTS.CABINET_CHIEF_ENACT, (data) => {
+      try {
+        const { cardIndex } = data || {};
+        const roomId = socket.data.roomId;
+        const gameState = rooms.get(roomId);
+        
+        if (!gameState) {
+          socket.emit('error', { message: ERROR_MESSAGES.ROOM_NOT_FOUND });
+          return;
+        }
+        
+        if (typeof cardIndex !== 'number' || cardIndex < 0) {
+          socket.emit('error', { message: 'Índice de carta inválido' });
+          return;
+        }
+        
+        const result = gameState.cabinetChiefEnactPolicy(cardIndex);
+        
+        if (result.success) {
+          io.to(roomId).emit('policy-enacted', {
+            policy: result.enactedPolicy,
+            kirchneristaPolicies: gameState.kirchneristaPolicies,
+            libertarianPolicies: gameState.libertarianPolicies,
+            satiricalText: result.satiricalText,
+            gameState: gameState.toJSON(),
+            message: `Se promulgó una política ${result.enactedPolicy.type === 'libertario' ? 'Libertaria' : 'Kirchnerista'}`
+          });
+          
+          if (result.gameOver) {
+            io.to(roomId).emit('game-over', {
+              winner: result.winner,
+              reason: result.winReason,
+              gameState: gameState.toJSON()
+            });
+            return;
+          }
+          
+          // Si hay poder presidencial, activarlo
+          if (result.power) {
+            io.to(roomId).emit('executive-power-available', {
+              power: result.power,
+              gameState: gameState.toJSON()
+            });
+            
+            // Si el presidente es IA, ejecutar poder automáticamente
+            const president = gameState.getCurrentPresident();
+            if (president && president.isAI) {
+              handleAITurn(io, roomId, gameState, GAME_PHASES.EXECUTIVE_POWER);
+            }
+            // Si es humano, esperar a que ejecute el poder (no completar ronda aún)
+          } else {
+            // No hay poder, completar ronda y continuar con siguiente presidente
+            gameState.completeRound();
+            
+            io.to(roomId).emit('round-completed', {
+              gameState: gameState.toJSON(),
+              message: 'Ronda completada. Siguiente presidente.'
+            });
+            
+            setTimeout(() => {
+              const president = gameState.getCurrentPresident();
+              if (president && president.isAI) {
+                handleAITurn(io, roomId, gameState, GAME_PHASES.NOMINATION);
+              }
+            }, 1000);
+          }
+        } else {
+          socket.emit('error', { message: result.message });
+        }
+      } catch (error) {
+        logger.error('Error al promulgar decreto:', error);
+        socket.emit('error', { message: 'Error al promulgar decreto' });
       }
     });
 
@@ -791,7 +879,7 @@ function initializeSocket(io) {
         playerName: player.name
       });
       
-      console.log(`🎤 ${player.name} se unió al chat de voz en ${roomId}`);
+      logger.debug(`${player.name} se unió al chat de voz en ${roomId}`);
     });
 
     // Usuario deja el chat de voz
@@ -805,7 +893,7 @@ function initializeSocket(io) {
       socket.data.voiceRoomId = null;
       socket.data.voicePlayerId = null;
       
-      console.log(`🔇 Usuario ${playerId} dejó el chat de voz`);
+      logger.debug(`Usuario ${playerId} dejó el chat de voz`);
     });
 
     // Señalización WebRTC - Oferta
@@ -899,24 +987,51 @@ function initializeSocket(io) {
             if (gameState.players.length === 0) {
               clearRoomAIs(gameState);
               rooms.delete(roomId);
-              console.log(`🗑️ Sala ${roomId} eliminada (vacía)`);
+              logger.info(`Sala ${roomId} eliminada (vacía)`);
             }
           }
         }
       }
       
-      console.log(`🔌 Jugador desconectado: ${socket.id}`);
+      logger.info(`Jugador desconectado: ${socket.id}`);
     });
   });
 
-  console.log('✅ Socket.IO inicializado');
+  logger.info('Socket.IO inicializado');
 }
 
 /**
  * Genera un ID único para las salas
+ * @returns {string} ID de sala único de 6 caracteres alfanuméricos
  */
 function generateRoomId() {
-  return Math.random().toString(36).substring(2, 8).toUpperCase();
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let roomId = '';
+  for (let i = 0; i < GAME_CONFIG.ROOM_ID_LENGTH; i++) {
+    roomId += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return roomId;
+}
+
+/**
+ * Valida que el jugador sea el host de la sala
+ * @param {GameState} gameState - Estado del juego
+ * @param {string} playerId - ID del jugador a validar
+ * @returns {boolean} True si el jugador es el host
+ */
+function isHost(gameState, playerId) {
+  return gameState.hostId === playerId;
+}
+
+/**
+ * Obtiene el jugador y valida su existencia
+ * @param {GameState} gameState - Estado del juego
+ * @param {string} playerId - ID del jugador a obtener
+ * @returns {Object|null} Objeto jugador o null si no existe
+ */
+function getValidatedPlayer(gameState, playerId) {
+  if (!gameState) return null;
+  return gameState.getPlayerById(playerId) || null;
 }
 
 module.exports = { initializeSocket };

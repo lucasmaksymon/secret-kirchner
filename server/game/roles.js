@@ -1,14 +1,16 @@
 /**
- * Sistema de roles para El Secreto de Kirchner
- * Distribución de roles según número de jugadores
+ * @fileoverview Sistema de roles para El Secreto de Kirchner
+ * @module game/roles
  */
 
+/** @type {Object<string, string>} Tipos de roles */
 const ROLE_TYPES = {
   LIBERTARIO: 'libertario',
   KIRCHNERISTA: 'kirchnerista',
   EL_JEFE: 'el_jefe'
 };
 
+/** @type {Object<string, string>} Tipos de equipos */
 const TEAM_TYPES = {
   LIBERTARIOS: 'libertarios',
   KIRCHNERISTAS: 'kirchneristas'
@@ -16,7 +18,7 @@ const TEAM_TYPES = {
 
 /**
  * Configuración de roles por número de jugadores
- * Basado en Secret Hitler pero adaptado
+ * @type {Object<number, Object>}
  */
 const ROLE_DISTRIBUTION = {
   5: {
@@ -58,9 +60,10 @@ const ROLE_DISTRIBUTION = {
 };
 
 /**
- * Genera y distribuye roles aleatoriamente
- * @param {number} playerCount - Número de jugadores
- * @returns {Array} Array de roles mezclados
+ * Genera y distribuye roles aleatoriamente según el número de jugadores
+ * @param {number} playerCount - Número de jugadores (5-10)
+ * @returns {Array<Object>} Array de roles mezclados
+ * @throws {Error} Si el número de jugadores es inválido
  */
 function generateRoles(playerCount) {
   if (!ROLE_DISTRIBUTION[playerCount]) {
@@ -70,7 +73,6 @@ function generateRoles(playerCount) {
   const config = ROLE_DISTRIBUTION[playerCount];
   const roles = [];
 
-  // Agregar libertarios
   for (let i = 0; i < config.libertarios; i++) {
     roles.push({
       type: ROLE_TYPES.LIBERTARIO,
@@ -78,7 +80,6 @@ function generateRoles(playerCount) {
     });
   }
 
-  // Agregar kirchneristas regulares
   for (let i = 0; i < config.kirchneristas; i++) {
     roles.push({
       type: ROLE_TYPES.KIRCHNERISTA,
@@ -86,21 +87,19 @@ function generateRoles(playerCount) {
     });
   }
 
-  // Agregar El Jefe
   roles.push({
     type: ROLE_TYPES.EL_JEFE,
     team: TEAM_TYPES.KIRCHNERISTAS,
     isElJefe: true
   });
 
-  // Mezclar roles
   return shuffleArray(roles);
 }
 
 /**
- * Obtiene información sobre quién conoce a quién al inicio
- * @param {Array} players - Array de jugadores con roles asignados
- * @returns {Object} Mapa de jugadores y quiénes conocen
+ * Obtiene información sobre quién conoce a quién al inicio del juego
+ * @param {Array<Object>} players - Array de jugadores con roles asignados
+ * @returns {Object<string, Object>} Mapa de jugadores y quiénes conocen
  */
 function getInitialKnowledge(players) {
   const knowledge = {};
@@ -113,7 +112,6 @@ function getInitialKnowledge(players) {
     };
   });
 
-  // Los kirchneristas se conocen entre sí
   const kirchneristas = players.filter(p => p.role.team === TEAM_TYPES.KIRCHNERISTAS);
   
   kirchneristas.forEach(kirchnerista => {
@@ -128,7 +126,6 @@ function getInitialKnowledge(players) {
     });
   });
 
-  // Caso especial: si son 5-6 jugadores, El Jefe no sabe quién es el kirchnerista
   const playerCount = players.length;
   if (playerCount <= 6) {
     const elJefe = players.find(p => p.role.type === ROLE_TYPES.EL_JEFE);
@@ -141,9 +138,9 @@ function getInitialKnowledge(players) {
 }
 
 /**
- * Mezcla un array aleatoriamente (Fisher-Yates shuffle)
+ * Mezcla un array aleatoriamente usando el algoritmo Fisher-Yates
  * @param {Array} array - Array a mezclar
- * @returns {Array} Array mezclado
+ * @returns {Array} Nuevo array mezclado
  */
 function shuffleArray(array) {
   const newArray = [...array];
@@ -155,7 +152,9 @@ function shuffleArray(array) {
 }
 
 /**
- * Verifica si un rol es kirchnerista
+ * Verifica si un rol pertenece al equipo kirchnerista
+ * @param {Object} role - Rol a verificar
+ * @returns {boolean} True si es kirchnerista
  */
 function isKirchnerista(role) {
   return role.team === TEAM_TYPES.KIRCHNERISTAS;
@@ -163,6 +162,8 @@ function isKirchnerista(role) {
 
 /**
  * Verifica si un rol es El Jefe
+ * @param {Object} role - Rol a verificar
+ * @returns {boolean} True si es El Jefe
  */
 function isElJefe(role) {
   return role.type === ROLE_TYPES.EL_JEFE;

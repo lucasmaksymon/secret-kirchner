@@ -1,13 +1,15 @@
 /**
- * Sistema de decretos (políticas) para El Secreto de Kirchner
+ * @fileoverview Sistema de decretos (políticas) para El Secreto de Kirchner
+ * @module game/policies
  */
 
+/** @type {Object<string, string>} Tipos de decretos */
 const POLICY_TYPES = {
   KIRCHNERISTA: 'kirchnerista',
   LIBERTARIO: 'libertario'
 };
 
-// Nombres satíricos para los decretos
+/** @type {Array<string>} Nombres satíricos para decretos kirchneristas */
 const KIRCHNERISTA_POLICY_NAMES = [
   'Cepo Cambiario Total',
   'Plan Platita Universal',
@@ -22,6 +24,7 @@ const KIRCHNERISTA_POLICY_NAMES = [
   'Empleo Público Masivo'
 ];
 
+/** @type {Array<string>} Nombres satíricos para decretos libertarios */
 const LIBERTARIO_POLICY_NAMES = [
   'Motosierra a Ministerios',
   'Dólar Libre Total',
@@ -32,13 +35,12 @@ const LIBERTARIO_POLICY_NAMES = [
 ];
 
 /**
- * Crea un mazo inicial de decretos
- * 11 Kirchneristas, 6 Libertarios (como el original)
+ * Crea un mazo inicial de decretos (11 kirchneristas, 6 libertarios)
+ * @returns {Array<Object>} Mazo de decretos mezclado
  */
 function createPolicyDeck() {
   const deck = [];
   
-  // Agregar 11 decretos kirchneristas
   for (let i = 0; i < 11; i++) {
     deck.push({
       type: POLICY_TYPES.KIRCHNERISTA,
@@ -47,7 +49,6 @@ function createPolicyDeck() {
     });
   }
   
-  // Agregar 6 decretos libertarios
   for (let i = 0; i < 6; i++) {
     deck.push({
       type: POLICY_TYPES.LIBERTARIO,
@@ -60,7 +61,9 @@ function createPolicyDeck() {
 }
 
 /**
- * Mezcla el mazo de decretos
+ * Mezcla el mazo de decretos usando Fisher-Yates
+ * @param {Array<Object>} deck - Mazo a mezclar
+ * @returns {Array<Object>} Mazo mezclado
  */
 function shuffleDeck(deck) {
   const newDeck = [...deck];
@@ -72,14 +75,15 @@ function shuffleDeck(deck) {
 }
 
 /**
- * Roba 3 cartas del mazo
- * Si quedan menos de 3 cartas, mezcla la pila de descarte
+ * Roba 3 cartas del mazo. Si quedan menos de 3, mezcla la pila de descarte
+ * @param {Array<Object>} deck - Mazo actual
+ * @param {Array<Object>} discardPile - Pila de descarte
+ * @returns {Object} Objeto con cards, remainingDeck y discardPile
  */
 function drawPolicies(deck, discardPile) {
   let currentDeck = [...deck];
   let currentDiscard = [...discardPile];
   
-  // Si no hay suficientes cartas, mezclar descarte
   if (currentDeck.length < 3) {
     currentDeck = [...currentDeck, ...shuffleDeck(currentDiscard)];
     currentDiscard = [];
@@ -95,7 +99,11 @@ function drawPolicies(deck, discardPile) {
 }
 
 /**
- * Descarta una carta
+ * Descarta una carta del conjunto de cartas
+ * @param {Array<Object>} cards - Array de cartas
+ * @param {number} cardIndex - Índice de la carta a descartar
+ * @returns {Object} Objeto con remaining y discarded
+ * @throws {Error} Si el índice es inválido
  */
 function discardPolicy(cards, cardIndex) {
   if (cardIndex < 0 || cardIndex >= cards.length) {
@@ -113,6 +121,9 @@ function discardPolicy(cards, cardIndex) {
 
 /**
  * Verifica si se alcanzó la condición de victoria
+ * @param {number} kirchneristaCount - Número de decretos kirchneristas
+ * @param {number} libertarioCount - Número de decretos libertarios
+ * @returns {Object|null} Objeto con winner y reason, o null si no hay victoria
  */
 function checkVictoryCondition(kirchneristaCount, libertarioCount) {
   if (libertarioCount >= 5) {
@@ -134,9 +145,11 @@ function checkVictoryCondition(kirchneristaCount, libertarioCount) {
 
 /**
  * Obtiene el poder presidencial según el número de decretos kirchneristas
+ * @param {number} kirchneristaCount - Número de decretos kirchneristas (1-5)
+ * @param {number} playerCount - Número total de jugadores (5-10)
+ * @returns {string|null} Tipo de poder o null si no hay poder disponible
  */
 function getPowerForTrack(kirchneristaCount, playerCount) {
-  // Los poderes varían según el número de jugadores
   const powerTracks = {
     5: [null, null, 'peek', 'execution', 'execution'],
     6: [null, null, 'peek', 'execution', 'execution'],
@@ -150,9 +163,7 @@ function getPowerForTrack(kirchneristaCount, playerCount) {
   return track[kirchneristaCount - 1] || null;
 }
 
-/**
- * Nombres satíricos de los poderes presidenciales
- */
+/** @type {Object<string, string>} Nombres satíricos de los poderes presidenciales */
 const POWER_NAMES = {
   'peek': 'Intervenir INDEC',
   'investigate': 'Investigar con AFIP',

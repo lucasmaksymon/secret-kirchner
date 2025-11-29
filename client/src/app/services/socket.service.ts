@@ -1,16 +1,16 @@
 import { Injectable } from '@angular/core';
 import { io, Socket } from 'socket.io-client';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class SocketService {
   private socket: Socket;
-  private readonly SERVER_URL = 'http://localhost:3000';
 
   constructor() {
-    this.socket = io(this.SERVER_URL);
+    this.socket = io(environment.socketUrl);
     
     // Log connection errors only
     this.socket.on('connect_error', (error) => {

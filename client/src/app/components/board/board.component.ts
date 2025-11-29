@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Observable } from 'rxjs';
 import { GameStateService } from '../../services/game-state.service';
-import { GameState, Player } from '../../models/game.model';
+import { GameState, Player, POWER_INFO } from '../../models/game.model';
 
 @Component({
   selector: 'app-board',
@@ -105,23 +105,34 @@ export class BoardComponent implements OnInit {
   }
 
   getPowerName(icon: string): string {
-    const powerNames: { [key: string]: string } = {
-      '📊': 'Intervenir INDEC',
-      '🕵️': 'Investigar con AFIP',
-      '🏛️': 'Sesión Especial del Congreso',
-      '💀': 'Operación Traslado'
+    const powerMap: { [key: string]: keyof typeof POWER_INFO } = {
+      '📊': 'peek',
+      '🕵️': 'investigate',
+      '🏛️': 'special-election',
+      '💀': 'execution'
     };
-    return powerNames[icon] || '';
+    const powerType = powerMap[icon];
+    return powerType ? POWER_INFO[powerType].name : '';
   }
 
   getPowerDescription(icon: string): string {
-    const powerDescriptions: { [key: string]: string } = {
-      '📊': 'Como buen estadista, manipulás las estadísticas y ves las próximas 3 cartas',
-      '🕵️': 'Usás el poder del Estado para investigar la lealtad de un jugador',
-      '🏛️': 'Convocás una sesión especial y elegís al próximo Presidente',
-      '💀': 'Alguien va a tener un pequeño accidente... Eliminás a un jugador'
+    const powerMap: { [key: string]: keyof typeof POWER_INFO } = {
+      '📊': 'peek',
+      '🕵️': 'investigate',
+      '🏛️': 'special-election',
+      '💀': 'execution'
     };
-    return powerDescriptions[icon] || '';
+    const powerType = powerMap[icon];
+    return powerType ? POWER_INFO[powerType].description : '';
+  }
+
+  getPowerTooltip(icon: string): string {
+    const name = this.getPowerName(icon);
+    const description = this.getPowerDescription(icon);
+    if (name && description) {
+      return `${name}\n\n${description}`;
+    }
+    return '';
   }
 }
 

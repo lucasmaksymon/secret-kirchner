@@ -161,6 +161,8 @@
         .power-indicator {
           font-size: 28px;
           opacity: 0.5;
+          cursor: help;
+          position: relative;
         }
       }
     }
@@ -191,6 +193,8 @@
           .power-icon {
             font-size: 28px;
             animation: pulse 2s infinite;
+            cursor: help;
+            position: relative;
           }
         }
       }
@@ -207,7 +211,60 @@
       opacity: 0.9;
     }
   }
+}
 
+// Tooltips personalizados para poderes
+.tooltip-trigger {
+  position: relative;
+  cursor: help;
+
+  &::before,
+  &::after {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s, transform 0.3s;
+    position: absolute;
+    z-index: 1000;
+  }
+
+  &::before {
+    content: attr(data-tooltip);
+    white-space: pre-line;
+    background: #000000;
+    color: white;
+    padding: 16px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    line-height: 1.7;
+    max-width: 400px;
+    min-width: 320px;
+    text-align: left;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6);
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%) translateY(8px);
+    margin-top: 8px;
+    word-wrap: break-word;
+    font-weight: 400;
+  }
+
+  &::after {
+    content: '';
+    border: 6px solid transparent;
+    border-bottom-color: #000000;
+    top: calc(100% - 6px);
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  &:hover::before,
+  &:hover::after {
+    opacity: 1;
+  }
+
+  &:hover::before {
+    transform: translateX(-50%) translateY(0);
+  }
 }
 
 

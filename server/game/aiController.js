@@ -5,6 +5,12 @@
 
 const { AIPlayer, AI_DIFFICULTY } = require('./aiPlayer');
 const { GAME_PHASES } = require('./gameState');
+const { 
+  executePeekPower, 
+  executeInvestigatePower, 
+  executeSpecialElectionPower, 
+  executeExecutionPower 
+} = require('./powers');
 
 // Almacén de instancias de IA por jugador
 const aiInstances = new Map();
@@ -463,54 +469,26 @@ function handleAIExecutivePower(io, roomId, gameState) {
   console.log(`⚡ Ejecutando poder: ${power} para presidente ${president.name}`);
   
   if (power === 'peek') {
-    // IA ve las 3 cartas (solo para su lógica)
-    const topThree = gameState.deck.slice(0, 3);
-    ai.updateAfterPeek(topThree);
+    // Usar función de powers.js para mantener consistencia
+    const result = executePeekPower(gameState.deck);
     
-    console.log(`👀 Poder PEEK ejecutado por IA`);
-    
-    io.to(roomId).emit('power-executed', {
-      power: 'peek',
-      gameState: gameState.toJSON(),
-      message: 'Poder ejecutado por IA'
-    });
-    
-    // Completar ronda y continuar
-    gameState.completeRound();
-    io.to(roomId).emit('game-update', {
-      gameState: gameState.toJSON(),
-      message: 'Poder ejecutado - Siguiente presidente'
-    });
-    
-    setTimeout(() => {
-      const president = gameState.getCurrentPresident();
-      if (president && president.isAI) {
-        handleAITurn(io, roomId, gameState, GAME_PHASES.NOMINATION);
-      }
-    }, 1000);
-  } 
-  else if (power === 'investigate') {
-    const targetId = ai.chooseInvestigationTarget(gameState, president);
-    console.log(`🕵️ Poder INVESTIGATE: target=${targetId}`);
-    if (targetId) {
-      const targetPlayer = gameState.getPlayerById(targetId);
-      targetPlayer.wasInvestigated = true;
+    if (result.success) {
+      // IA ve las 3 cartas (solo para su lógica)
+      ai.updateAfterPeek(result.cards);
       
-      // IA "aprende" del resultado
-      const loyalty = targetPlayer.role.team;
-      ai.updateAfterInvestigation(targetId, loyalty);
+      console.log(`👀 Poder PEEK ejecutado por IA`);
       
       io.to(roomId).emit('power-executed', {
-        power: 'investigate',
-        targetPlayerName: targetPlayer.name,
-        gameState: gameState.toJSON()
+        power: 'peek',
+        gameState: gameState.toJSON(),
+        message: result.message
       });
       
       // Completar ronda y continuar
       gameState.completeRound();
       io.to(roomId).emit('game-update', {
         gameState: gameState.toJSON(),
-        message: 'Investigación completada - Siguiente presidente'
+        message: 'Poder ejecutado - Siguiente presidente'
       });
       
       setTimeout(() => {
@@ -520,69 +498,35 @@ function handleAIExecutivePower(io, roomId, gameState) {
         }
       }, 1000);
     }
-  }
-  else if (power === 'special-election') {
-    const targetId = ai.chooseSpecialElectionTarget(gameState, president);
-    console.log(`🗳️ Poder SPECIAL ELECTION: target=${targetId}`);
+  } 
+  else if (power === 'investigate') {
+    const targetId = ai.chooseInvestigationTarget(gameState, president);
+    console.log(`🕵️ Poder INVESTIGATE: target=${targetId}`);
     if (targetId) {
       const targetPlayer = gameState.getPlayerById(targetId);
-      gameState.specialElectionActive = true;
-      const nextPresidentIndex = gameState.players.findIndex(p => p.id === targetId);
-      gameState.presidentIndex = nextPresidentIndex - 1;
       
-      io.to(roomId).emit('power-executed', {
-        power: 'special-election',
-        nextPresidentName: targetPlayer.name,
-        message: `${targetPlayer.name} será el próximo Presidente`,
-        gameState: gameState.toJSON()
-      });
+      // Usar función de powers.js para mantener consistencia
+      const result = executeInvestigatePower(targetPlayer);
       
-      // Completar ronda y continuar con el nuevo presidente
-      gameState.completeRound();
-      io.to(roomId).emit('game-update', {
-        gameState: gameState.toJSON(),
-        message: 'Sesión Especial - Nuevo presidente elegido'
-      });
-      
-      setTimeout(() => {
-        const president = gameState.getCurrentPresident();
-        if (president && president.isAI) {
-          handleAITurn(io, roomId, gameState, GAME_PHASES.NOMINATION);
-        }
-      }, 1000);
-    }
-  }
-  else if (power === 'execution') {
-    const targetId = ai.chooseExecutionTarget(gameState, president);
-    console.log(`💀 Poder EXECUTION: target=${targetId}`);
-    if (targetId) {
-      const targetPlayer = gameState.getPlayerById(targetId);
-      targetPlayer.isDead = true;
-      gameState.alivePlayers = gameState.players.filter(p => !p.isDead);
-      
-      const wasElJefe = targetPlayer.role.name === 'El Jefe';
-      
-      io.to(roomId).emit('power-executed', {
-        power: 'execution',
-        executedPlayerName: targetPlayer.name,
-        wasElJefe: wasElJefe,
-        message: `${targetPlayer.name} ha sido ejecutado`,
-        gameState: gameState.toJSON()
-      });
-      
-      // Verificar game over (si mataron a El Jefe)
-      if (wasElJefe) {
-        io.to(roomId).emit('game-over', {
-          winner: 'libertarian',
-          reason: '¡El Jefe fue ejecutado!',
-          gameState: gameState.toJSON()
+      if (result.success) {
+        targetPlayer.wasInvestigated = true;
+        
+        // IA "aprende" del resultado
+        ai.updateAfterInvestigation(targetId, result.loyalty);
+        
+        io.to(roomId).emit('power-executed', {
+          power: 'investigate',
+          targetPlayerName: result.playerName,
+          loyalty: result.loyalty,
+          gameState: gameState.toJSON(),
+          message: result.message
         });
-      } else {
+        
         // Completar ronda y continuar
         gameState.completeRound();
         io.to(roomId).emit('game-update', {
           gameState: gameState.toJSON(),
-          message: 'Jugador ejecutado - Siguiente presidente'
+          message: 'Investigación completada - Siguiente presidente'
         });
         
         setTimeout(() => {
@@ -591,6 +535,89 @@ function handleAIExecutivePower(io, roomId, gameState) {
             handleAITurn(io, roomId, gameState, GAME_PHASES.NOMINATION);
           }
         }, 1000);
+      }
+    }
+  }
+  else if (power === 'special-election') {
+    const targetId = ai.chooseSpecialElectionTarget(gameState, president);
+    console.log(`🗳️ Poder SPECIAL ELECTION: target=${targetId}`);
+    if (targetId) {
+      const targetPlayer = gameState.getPlayerById(targetId);
+      
+      // Usar función de powers.js para mantener consistencia
+      const result = executeSpecialElectionPower(targetPlayer, president);
+      
+      if (result.success) {
+        gameState.specialElectionActive = true;
+        const nextPresidentIndex = gameState.players.findIndex(p => p.id === targetId);
+        gameState.presidentIndex = nextPresidentIndex - 1; // Será incrementado en completeRound
+        
+        io.to(roomId).emit('power-executed', {
+          power: 'special-election',
+          nextPresidentName: result.nextPresidentName,
+          message: result.message,
+          gameState: gameState.toJSON()
+        });
+        
+        // Completar ronda y continuar con el nuevo presidente
+        gameState.completeRound();
+        io.to(roomId).emit('game-update', {
+          gameState: gameState.toJSON(),
+          message: 'Sesión Especial - Nuevo presidente elegido'
+        });
+        
+        setTimeout(() => {
+          const president = gameState.getCurrentPresident();
+          if (president && president.isAI) {
+            handleAITurn(io, roomId, gameState, GAME_PHASES.NOMINATION);
+          }
+        }, 1000);
+      }
+    }
+  }
+  else if (power === 'execution') {
+    const targetId = ai.chooseExecutionTarget(gameState, president);
+    console.log(`💀 Poder EXECUTION: target=${targetId}`);
+    if (targetId) {
+      const targetPlayer = gameState.getPlayerById(targetId);
+      
+      // Usar función de powers.js para mantener consistencia
+      const result = executeExecutionPower(targetPlayer, gameState.players);
+      
+      if (result.success) {
+        // Actualizar lista de jugadores vivos
+        gameState.alivePlayers = gameState.players.filter(p => !p.isDead);
+        
+        io.to(roomId).emit('power-executed', {
+          power: 'execution',
+          executedPlayerName: result.executedPlayerName,
+          wasElJefe: result.wasElJefe,
+          message: result.message,
+          gameState: gameState.toJSON()
+        });
+        
+        // Verificar game over (si mataron a El Jefe)
+        if (result.gameOver) {
+          io.to(roomId).emit('game-over', {
+            winner: result.gameOver.winner,
+            reason: result.gameOver.reason,
+            gameState: gameState.toJSON()
+          });
+        } else {
+          // Completar ronda y continuar
+          gameState.completeRound();
+          io.to(roomId).emit('game-update', {
+            gameState: gameState.toJSON(),
+            message: 'Jugador ejecutado - Siguiente presidente'
+          });
+          
+          setTimeout(() => {
+            const president = gameState.getCurrentPresident();
+            if (president && president.isAI) {
+              handleAITurn(io, roomId, gameState, GAME_PHASES.NOMINATION);
+            }
+          }, 1000);
+        }
       }
     }
   }

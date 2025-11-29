@@ -1,17 +1,59 @@
 <div class="executive-power-container card" *ngIf="gameState$ | async as gameState">
   <h3 class="text-center">💼 Poder Presidencial</h3>
 
-  <div *ngIf="isPresident()" class="power-section">
+  <div *ngIf="isPresident() && getPowerInfo() as power" class="power-section">
     <div class="power-info">
-      <div class="power-icon">💀</div>
-      <h4>Operación Traslado</h4>
+      <div class="power-icon">{{ power.icon }}</div>
+      <h4>{{ power.name }}</h4>
       <p class="power-description">
-        Seleccioná a un jugador para eliminarlo del juego. Si eliminás a El Jefe, los Libertarios ganan.
+        {{ power.description }}
       </p>
     </div>
 
-    <div class="player-selection mt-3">
-      <h5>Seleccioná un jugador:</h5>
+    <!-- Peek: No requiere selección -->
+    <div *ngIf="getCurrentPower() === 'peek'" class="power-actions mt-3">
+      <button 
+        class="btn btn-primary btn-large"
+        (click)="executePower()"
+      >
+        {{ power.icon }} Ejecutar {{ power.name }}
+      </button>
+      <p class="text-muted mt-2">
+        Verás las próximas 3 cartas del mazo en secreto
+      </p>
+      
+      <!-- Mostrar resultado de peek -->
+      <div *ngIf="peekResult$ | async as peekCards" class="peek-result mt-3">
+        <h5>📊 Cartas vistas (en orden):</h5>
+        <div class="peek-cards">
+          <div 
+            *ngFor="let card of peekCards; let i = index"
+            class="peek-card"
+            [class.libertario]="card.type === 'libertario'"
+            [class.kirchnerista]="card.type === 'kirchnerista'"
+          >
+            <div class="peek-card-number">{{ i + 1 }}</div>
+            <div class="peek-card-icon">
+              {{ card.type === 'libertario' ? '🦅' : '✊' }}
+            </div>
+            <div class="peek-card-type">
+              {{ card.type === 'libertario' ? 'LIBERTARIO' : 'KIRCHNERISTA' }}
+            </div>
+            <div class="peek-card-name">{{ card.name }}</div>
+          </div>
+        </div>
+        <p class="text-muted mt-2 small">
+          ⚠️ Esta información es solo para vos. Podés mentir sobre lo que viste.
+        </p>
+      </div>
+    </div>
+
+    <!-- Otros poderes: Requieren selección de jugador -->
+    <div *ngIf="requiresPlayerSelection()" class="player-selection mt-3">
+      <h5 *ngIf="getCurrentPower() === 'investigate'">Seleccioná un jugador para investigar:</h5>
+      <h5 *ngIf="getCurrentPower() === 'special-election'">Seleccioná al próximo Presidente:</h5>
+      <h5 *ngIf="getCurrentPower() === 'execution'">Seleccioná un jugador para ejecutar:</h5>
+      
       <div class="player-grid">
         <div 
           *ngFor="let player of getEligiblePlayers()"
@@ -21,21 +63,42 @@
           (click)="canSelectPlayer(player) && selectPlayer(player.id)"
         >
           <span class="player-name">{{ player.name }}</span>
+          <span *ngIf="player.isAI" class="ai-badge">🤖</span>
           <span *ngIf="selectedPlayerId === player.id" class="selected-badge">✓</span>
         </div>
       </div>
     </div>
 
-    <div class="power-actions mt-3">
+    <div *ngIf="requiresPlayerSelection()" class="power-actions mt-3">
       <button 
-        class="btn btn-danger btn-large"
+        class="btn"
+        [class.btn-primary]="getCurrentPower() === 'investigate' || getCurrentPower() === 'special-election'"
+        [class.btn-danger]="getCurrentPower() === 'execution'"
+        [class.btn-large]="true"
         [disabled]="!selectedPlayerId"
         (click)="executePower()"
       >
-        💀 Ejecutar Operación Traslado
+        {{ power.icon }} Ejecutar {{ power.name }}
       </button>
-      <p class="text-muted mt-2">
+      <p *ngIf="getCurrentPower() === 'execution'" class="text-muted mt-2">
         ⚠️ Esta acción no se puede deshacer
+      </p>
+      <p *ngIf="getCurrentPower() === 'investigate'" class="text-muted mt-2">
+        Verás la lealtad del jugador seleccionado (pero no si es El Jefe)
+      </p>
+      
+      <!-- Mostrar resultado de investigación -->
+      <div *ngIf="getCurrentPower() === 'investigate' && (investigateResult$ | async) as result" class="investigate-result mt-3">
+        <div class="alert alert-info">
+          <h5>🕵️ Resultado de la Investigación</h5>
+          <p><strong>{{ result.playerName }}</strong> es <strong>{{ result.loyalty === 'libertarios' ? 'LIBERTARIO' : 'KIRCHNERISTA' }}</strong></p>
+          <p class="small text-muted mt-2">
+            ⚠️ Esta información es solo para vos. Podés compartir o mentir sobre el resultado.
+          </p>
+        </div>
+      </div>
+      <p *ngIf="getCurrentPower() === 'special-election'" class="text-muted mt-2">
+        El jugador seleccionado será el próximo Presidente
       </p>
     </div>
   </div>
@@ -43,6 +106,9 @@
   <div *ngIf="!isPresident()" class="waiting-section text-center">
     <div class="spinner">⏳</div>
     <p class="mt-3">Esperando a que el Presidente ejecute su poder...</p>
+    <p *ngIf="getPowerInfo() as power" class="text-muted mt-2">
+      {{ power.icon }} {{ power.name }}
+    </p>
   </div>
 </div>
 

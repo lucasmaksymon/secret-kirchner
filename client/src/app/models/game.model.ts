@@ -45,6 +45,7 @@ export interface GameState {
   gameOver: boolean;
   winner: string | null;
   winReason: string | null;
+  currentPower: PowerType | null;
   waitingForHost?: boolean;
   pendingAction?: string | null;
 }

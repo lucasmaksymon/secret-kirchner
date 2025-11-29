@@ -23,7 +23,14 @@
             "polyfills": ["zone.js"],
             "tsConfig": "tsconfig.app.json",
             "inlineStyleLanguage": "scss",
-            "assets": ["src/assets", "src/_redirects"],
+            "assets": [
+              "src/assets",
+              {
+                "glob": "_redirects",
+                "input": "public",
+                "output": "/"
+              }
+            ],
             "styles": ["src/styles.scss"],
             "scripts": []
           },

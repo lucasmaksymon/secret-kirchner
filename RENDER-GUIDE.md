@@ -159,6 +159,25 @@ Una vez que tengas la URL del backend:
 
 **⚠️ IMPORTANTE:** Los Static Sites NO tienen campo "Start Command". Si ves ese campo, significa que creaste un "Web Service" por error. Elimínalo y créalo de nuevo como "Static Site".
 
+**Configurar Redirecciones (para rutas directas):**
+
+Para que las URLs directas como `/lobby/WO8JKL` funcionen, necesitas configurar redirecciones:
+
+1. Ve a tu Static Site en Render
+2. Click en **"Settings"**
+3. Busca la sección **"Redirects/Rewrites"** o **"Headers"**
+4. Agrega una regla de redirección:
+   - **From**: `/*`
+   - **To**: `/index.html`
+   - **Status**: `200` (no 301/302)
+   
+   O si Render tiene un campo de "Headers", agrega:
+   ```
+   X-Rewrite-URL: /index.html
+   ```
+
+**Alternativa:** El archivo `_redirects` debería copiarse automáticamente al build, pero si no funciona, usa la configuración de Render mencionada arriba.
+
 **Environment Variables** (click en "Advanced"):
 Agrega estas variables con la URL de tu backend:
 

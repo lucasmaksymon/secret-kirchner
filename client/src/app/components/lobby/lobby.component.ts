@@ -30,6 +30,19 @@ export class LobbyComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
+    // Obtener roomId de la ruta
+    const roomId = this.route.snapshot.paramMap.get('roomId');
+    
+    if (roomId) {
+      // Verificar si ya tenemos el gameState (ya estamos en la sala)
+      const currentState = this.gameStateService.getGameStateValue();
+      
+      if (!currentState || currentState.roomId !== roomId) {
+        // No estamos en esta sala, intentar unirse o reconectar
+        this.handleRoomAccess(roomId);
+      }
+    }
+
     // Subscribe to game state
     this.gameStateService.gameState$
       .pipe(takeUntil(this.destroy$))
@@ -62,8 +75,43 @@ export class LobbyComponent implements OnInit, OnDestroy {
       .subscribe(error => {
         if (error) {
           this.showMessage(error, true);
+          // Si es un error de sala no encontrada, redirigir al home después de un tiempo
+          if (error.includes('no encontrada') || error.includes('no existe')) {
+            setTimeout(() => {
+              this.router.navigate(['/']);
+            }, 3000);
+          }
         }
       });
+  }
+
+  private handleRoomAccess(roomId: string): void {
+    // Intentar obtener sesión guardada
+    const session = this.gameStateService.getStoredSession();
+    
+    if (session && session.roomId === roomId && session.playerId) {
+      // Intentar reconectar
+      console.log('🔄 Intentando reconectar a la sala:', roomId);
+      this.socketService.rejoinRoom(roomId, session.playerId);
+    } else {
+      // No hay sesión, necesitamos el nombre del jugador
+      // Intentar obtenerlo del localStorage o pedirlo
+      const storedPlayerName = localStorage.getItem('playerName');
+      
+      if (storedPlayerName) {
+        console.log('🔌 Uniéndose a la sala:', roomId);
+        this.socketService.joinRoom(roomId, storedPlayerName);
+      } else {
+        // No hay nombre guardado, redirigir al home para que lo ingrese
+        console.log('⚠️ No hay nombre de jugador guardado. Redirigiendo al home...');
+        this.router.navigate(['/'], { 
+          queryParams: { 
+            roomId: roomId,
+            join: 'true'
+          } 
+        });
+      }
+    }
   }
 
   ngOnDestroy(): void {

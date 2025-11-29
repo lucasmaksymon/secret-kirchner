@@ -262,9 +262,12 @@ export class GameStateService {
   }
 
   // Persistencia de sesión
-  private saveSession(roomId: string, playerId: string): void {
+  private saveSession(roomId: string, playerId: string, playerName?: string): void {
     localStorage.setItem('sk_roomId', roomId);
     localStorage.setItem('sk_playerId', playerId);
+    if (playerName) {
+      localStorage.setItem('playerName', playerName);
+    }
   }
 
   getStoredSession(): { roomId: string; playerId: string } | null {
@@ -281,6 +284,7 @@ export class GameStateService {
   clearSession(): void {
     localStorage.removeItem('sk_roomId');
     localStorage.removeItem('sk_playerId');
+    // No eliminamos playerName para que pueda reutilizarse
   }
 }
 

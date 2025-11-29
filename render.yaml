@@ -11,9 +11,9 @@ services:
         value: 10000
       # Actualiza estas URLs después de crear el frontend
       - key: CORS_ORIGIN
-        value: https://secreto-kirchner-frontend.onrender.com
+        value: https://name-secreto-kirchner-frontend.onrender.com
       - key: CLIENT_URL
-        value: https://secreto-kirchner-frontend.onrender.com
+        value: https://name-secreto-kirchner-frontend.onrender.com
 
   - type: web
     name: secreto-kirchner-frontend

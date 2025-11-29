@@ -12,17 +12,32 @@ const app = express();
 const config = getConfig();
 const server = http.createServer(app);
 
+// Configurar CORS - permitir múltiples orígenes separados por coma
+const allowedOrigins = config.corsOrigin 
+  ? config.corsOrigin.split(',').map(o => o.trim()).filter(o => o)
+  : [];
+
+// Si solo hay un origen, usar string directamente (más eficiente)
+// Si hay múltiples, usar array
+const corsOriginConfig = allowedOrigins.length === 1 
+  ? allowedOrigins[0] 
+  : allowedOrigins.length > 1 
+    ? allowedOrigins 
+    : config.corsOrigin; // Fallback al valor original
+
 const io = socketIo(server, {
   cors: {
-    origin: config.corsOrigin,
-    methods: ["GET", "POST"]
+    origin: corsOriginConfig,
+    methods: ["GET", "POST"],
+    credentials: true
   }
 });
 
-// Middleware
+// Middleware CORS para Express
 app.use(cors({
-  origin: config.corsOrigin,
-  methods: ["GET", "POST"]
+  origin: corsOriginConfig,
+  methods: ["GET", "POST"],
+  credentials: true
 }));
 app.use(express.json());
 app.use(express.static('public'));

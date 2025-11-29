@@ -79,10 +79,11 @@ Agrega estas variables (las actualizarás después con la URL del frontend):
 
 ```
 NODE_ENV=production
-PORT=10000
 CORS_ORIGIN=https://secreto-kirchner-frontend.onrender.com
 CLIENT_URL=https://secreto-kirchner-frontend.onrender.com
 ```
+
+**⚠️ IMPORTANTE:** NO establezcas `PORT` manualmente. Render asigna automáticamente el puerto a través de `process.env.PORT`, y el servidor ya está configurado para usarlo.
 
 **Plan:**
 - Selecciona **"Free"** (gratis)
@@ -118,10 +119,12 @@ Una vez que tengas la URL del backend:
 ### 5.1 Crear Static Site (Frontend)
 
 1. En el dashboard de Render, click en **"New +"**
-2. Selecciona **"Static Site"**
+2. **⚠️ IMPORTANTE:** Selecciona **"Static Site"** (NO "Web Service")
 3. Conecta el mismo repositorio:
    - Selecciona `SecretKirchner`
    - Branch: `main`
+   
+**Nota:** Si accidentalmente creaste un "Web Service" en lugar de "Static Site", elimínalo y créalo de nuevo como Static Site. Los Static Sites no necesitan puertos ni Start Command funcionando.
 
 ### 5.2 Configurar el Frontend
 

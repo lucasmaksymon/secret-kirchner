@@ -40,7 +40,7 @@ app.get('/api/health', (req, res) => {
 // Inicializar Socket.IO
 initializeSocket(io);
 
-server.listen(config.port, () => {
+server.listen(config.port, '0.0.0.0', () => {
   logger.info(`El Secreto de Kirchner - Servidor corriendo en puerto ${config.port}`);
   logger.info(`Entorno: ${config.nodeEnv}`);
   logger.info(`Cliente permitido: ${config.corsOrigin}`);

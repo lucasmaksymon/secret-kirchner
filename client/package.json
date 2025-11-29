@@ -4,7 +4,8 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
-    "build": "node scripts/replace-env.js && npx ng build --configuration production",
+    "prebuild": "node scripts/replace-env.js",
+    "build": "node node_modules/@angular/cli/bin/ng.js build --configuration production",
     "build:dev": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test"

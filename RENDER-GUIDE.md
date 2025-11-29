@@ -133,8 +133,10 @@ Una vez que tengas la URL del backend:
 **Build & Deploy:**
 - **Build Command**: 
   ```
-  cd client && npm install && npm run build
+  cd client && npm install && node scripts/replace-env.js && ./node_modules/.bin/ng build --configuration production
   ```
+  
+  **Explicación:** Usamos el path directo a `ng` porque en Render a veces npm no resuelve correctamente los binarios en el PATH.
 - **Publish Directory**: 
   ```
   client/dist/secreto-kirchner-client

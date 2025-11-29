@@ -67,8 +67,11 @@ Completa los siguientes campos:
 - **Environment**: `Node`
 - **Build Command**: 
   ```
-  npm install && cd client && npm install && npm run build
+  npm install
   ```
+  
+  **Nota:** El build del frontend no es necesario para el backend. Solo instalamos las dependencias del backend.
+  
 - **Start Command**: 
   ```
   node server/server.js
@@ -118,13 +121,18 @@ Una vez que tengas la URL del backend:
 
 ### 5.1 Crear Static Site (Frontend)
 
+**⚠️ MUY IMPORTANTE:** El frontend DEBE ser un **"Static Site"**, NO un "Web Service".
+
 1. En el dashboard de Render, click en **"New +"**
-2. **⚠️ IMPORTANTE:** Selecciona **"Static Site"** (NO "Web Service")
+2. **Selecciona "Static Site"** (NO "Web Service")
 3. Conecta el mismo repositorio:
    - Selecciona `SecretKirchner`
    - Branch: `main`
-   
-**Nota:** Si accidentalmente creaste un "Web Service" en lugar de "Static Site", elimínalo y créalo de nuevo como Static Site. Los Static Sites no necesitan puertos ni Start Command funcionando.
+
+**Si ya creaste un "Web Service" para el frontend:**
+- Elimínalo completamente (Settings → Delete Service)
+- Crea uno nuevo como "Static Site"
+- Los Static Sites NO necesitan puertos ni Start Command
 
 ### 5.2 Configurar el Frontend
 
@@ -148,13 +156,8 @@ Una vez que tengas la URL del backend:
   ```
   client/dist/secreto-kirchner-client
   ```
-  
-- **Start Command**: 
-  ```
-  node noop.js
-  ```
-  
-  **Explicación:** Render requiere un Start Command incluso para Static Sites. Este script dummy se queda corriendo indefinidamente sin hacer nada, ya que los Static Sites solo sirven archivos estáticos desde el directorio publicado.
+
+**⚠️ IMPORTANTE:** Los Static Sites NO tienen campo "Start Command". Si ves ese campo, significa que creaste un "Web Service" por error. Elimínalo y créalo de nuevo como "Static Site".
 
 **Environment Variables** (click en "Advanced"):
 Agrega estas variables con la URL de tu backend:

@@ -40,10 +40,22 @@ app.get('/api/health', (req, res) => {
 // Inicializar Socket.IO
 initializeSocket(io);
 
-server.listen(config.port, '0.0.0.0', () => {
-  logger.info(`El Secreto de Kirchner - Servidor corriendo en puerto ${config.port}`);
+// Asegurar que el puerto sea un número
+const port = parseInt(config.port, 10) || 3000;
+
+server.listen(port, '0.0.0.0', () => {
+  console.log(`✅ Servidor iniciado en puerto ${port}`);
+  logger.info(`El Secreto de Kirchner - Servidor corriendo en puerto ${port}`);
   logger.info(`Entorno: ${config.nodeEnv}`);
   logger.info(`Cliente permitido: ${config.corsOrigin}`);
+  logger.info(`Escuchando en: 0.0.0.0:${port}`);
+});
+
+// Manejar errores de inicio
+server.on('error', (error) => {
+  console.error('❌ Error al iniciar el servidor:', error);
+  logger.error('Error al iniciar el servidor:', error);
+  process.exit(1);
 });
 
 module.exports = { app, server, io };

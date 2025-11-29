@@ -140,10 +140,18 @@ Una vez que tengas la URL del backend:
   - `NODE_ENV=development npm install` fuerza la instalación de devDependencies (Angular CLI está ahí)
   - Luego ejecutamos el script de reemplazo de variables de entorno
   - Finalmente usamos Node.js directamente para ejecutar Angular CLI desde su ubicación en node_modules
+  
 - **Publish Directory**: 
   ```
   client/dist/secreto-kirchner-client
   ```
+  
+- **Start Command**: 
+  ```
+  node client/noop.js
+  ```
+  
+  **Explicación:** Render requiere un Start Command incluso para Static Sites. Este script dummy simplemente sale exitosamente sin hacer nada, ya que los Static Sites solo sirven archivos estáticos.
 
 **Environment Variables** (click en "Advanced"):
 Agrega estas variables con la URL de tu backend:
@@ -162,6 +170,18 @@ SOCKET_URL=https://secreto-kirchner-backend.onrender.com
 2. ⏳ Espera 5-10 minutos
 3. Cuando termine, tendrás una URL como: `https://secreto-kirchner-frontend.onrender.com`
 4. **¡Esta es la URL de tu juego!** 🎉
+
+**⚠️ IMPORTANTE - Si el deploy falla con error de "express" o "server.js":**
+
+Si Render está intentando ejecutar el servidor en el Static Site:
+
+1. Ve a tu Static Site en Render
+2. Click en **"Settings"**
+3. Busca la sección **"Start Command"**
+4. Cámbialo a: `node client/noop.js`
+5. Guarda los cambios y Render redeployará
+
+Este script dummy simplemente sale exitosamente sin hacer nada, ya que los Static Sites solo sirven archivos estáticos.
 
 ---
 

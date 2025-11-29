@@ -489,9 +489,14 @@ class GameState {
       return { success: false, message: 'Índice de carta fuera de rango' };
     }
 
-    const result = discardPolicy(this.currentPolicyCards, cardIndex);
-    const enactedPolicy = result.remaining[0];
-    this.discardPile.push(result.discarded);
+    // La carta promulgada es la que el usuario seleccionó
+    const enactedPolicy = this.currentPolicyCards[cardIndex];
+    
+    // La carta descartada es la otra (la que NO se promulgó)
+    const discardedIndex = cardIndex === 0 ? 1 : 0;
+    const discardedPolicy = this.currentPolicyCards[discardedIndex];
+    
+    this.discardPile.push(discardedPolicy);
     this.currentPolicyCards = [];
     this.presidentDiscardedCard = null;
 

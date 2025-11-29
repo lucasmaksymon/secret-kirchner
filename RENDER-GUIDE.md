@@ -144,13 +144,13 @@ Una vez que tengas la URL del backend:
 **Build & Deploy:**
 - **Build Command**: 
   ```
-  cd client && NODE_ENV=development npm install && node scripts/replace-env.js && node node_modules/@angular/cli/bin/ng.js build --configuration production
+  cd client && npm install && node scripts/replace-env.js && npm run build
   ```
   
   **Explicación:** 
-  - `NODE_ENV=development npm install` fuerza la instalación de devDependencies (Angular CLI está ahí)
-  - Luego ejecutamos el script de reemplazo de variables de entorno
-  - Finalmente usamos Node.js directamente para ejecutar Angular CLI desde su ubicación en node_modules
+  - `npm install` instala todas las dependencias (incluyendo devDependencies)
+  - `node scripts/replace-env.js` reemplaza las variables de entorno en `environment.prod.ts` con los valores de Render
+  - `npm run build` ejecuta el build de producción (el script `prebuild` también ejecuta replace-env.js como respaldo)
   
 - **Publish Directory**: 
   ```
@@ -159,24 +159,23 @@ Una vez que tengas la URL del backend:
 
 **⚠️ IMPORTANTE:** Los Static Sites NO tienen campo "Start Command". Si ves ese campo, significa que creaste un "Web Service" por error. Elimínalo y créalo de nuevo como "Static Site".
 
-**Configurar Redirecciones (para rutas directas):**
+**⚠️ CRÍTICO - Configurar Redirecciones (para rutas directas):**
 
-Para que las URLs directas como `/lobby/WO8JKL` funcionen, necesitas configurar redirecciones:
+**Este paso es OBLIGATORIO.** Sin esto, las URLs directas como `/lobby/WO8JKL` darán error 404 al recargar.
 
-1. Ve a tu Static Site en Render
-2. Click en **"Settings"**
-3. Busca la sección **"Redirects/Rewrites"** o **"Headers"**
-4. Agrega una regla de redirección:
-   - **From**: `/*`
-   - **To**: `/index.html`
-   - **Status**: `200` (no 301/302)
-   
-   O si Render tiene un campo de "Headers", agrega:
-   ```
-   X-Rewrite-URL: /index.html
-   ```
+1. Ve a tu Static Site en Render (https://dashboard.render.com)
+2. Click en **"Settings"** (en el menú lateral)
+3. Desplázate hasta la sección **"Redirects and Rewrites"**
+4. Click en **"Add Redirect"** o **"Add Rewrite"**
+5. Configura la regla:
+   - **Source Path**: `/*` (todas las rutas)
+   - **Destination Path**: `/index.html`
+   - **Action**: Selecciona **"Rewrite"** (NO "Redirect")
+   - **Status Code**: `200` (si te pide un código de estado)
+6. Click en **"Save"**
+7. Render redeployará automáticamente
 
-**Alternativa:** El archivo `_redirects` debería copiarse automáticamente al build, pero si no funciona, usa la configuración de Render mencionada arriba.
+**Nota:** El archivo `_redirects` se copia al build, pero Render requiere que también lo configures manualmente en el dashboard para Static Sites.
 
 **Environment Variables** (click en "Advanced"):
 Agrega estas variables con la URL de tu backend:

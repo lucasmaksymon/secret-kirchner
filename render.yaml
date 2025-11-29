@@ -18,8 +18,12 @@ services:
   - type: web
     name: secreto-kirchner-frontend
     env: static
-    buildCommand: cd client && npm install && npm run build
+    buildCommand: cd client && npm install && node scripts/replace-env.js && npm run build
     staticPublishPath: client/dist/secreto-kirchner-client
+    headers:
+      - path: /*
+        name: X-Rewrite-URL
+        value: /index.html
     envVars:
       # Actualiza esta URL después de crear el backend
       - key: SERVER_URL

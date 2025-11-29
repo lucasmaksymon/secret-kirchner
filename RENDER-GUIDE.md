@@ -133,10 +133,13 @@ Una vez que tengas la URL del backend:
 **Build & Deploy:**
 - **Build Command**: 
   ```
-  cd client && npm install && node scripts/replace-env.js && ./node_modules/.bin/ng build --configuration production
+  cd client && NODE_ENV=development npm install && node scripts/replace-env.js && node node_modules/@angular/cli/bin/ng.js build --configuration production
   ```
   
-  **Explicación:** Usamos el path directo a `ng` porque en Render a veces npm no resuelve correctamente los binarios en el PATH.
+  **Explicación:** 
+  - `NODE_ENV=development npm install` fuerza la instalación de devDependencies (Angular CLI está ahí)
+  - Luego ejecutamos el script de reemplazo de variables de entorno
+  - Finalmente usamos Node.js directamente para ejecutar Angular CLI desde su ubicación en node_modules
 - **Publish Directory**: 
   ```
   client/dist/secreto-kirchner-client

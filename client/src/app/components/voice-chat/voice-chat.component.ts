@@ -11,6 +11,7 @@ import { GameStateService } from '../../services/game-state.service';
 export class VoiceChatComponent implements OnInit, OnDestroy {
   @Input() roomId: string = '';
   @Input() playerId: string = '';
+  @Input() embedded: boolean = false; // Si está embebido en un modal/sidebar (no flotante)
   
   isConnected: boolean = false;
   isMuted: boolean = false;
@@ -18,6 +19,8 @@ export class VoiceChatComponent implements OnInit, OnDestroy {
   voiceUsers: Map<string, VoiceUser> = new Map();
   errorMessage: string | null = null;
   isConnecting: boolean = false;
+  isMinimized: boolean = false;
+  isPinned: boolean = false;
 
   private destroy$ = new Subject<void>();
   private localAudioStream: MediaStream | null = null;
@@ -28,6 +31,18 @@ export class VoiceChatComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
+    // Cargar estado guardado
+    const savedMinimized = localStorage.getItem('voiceChatMinimized');
+    const savedPinned = localStorage.getItem('voiceChatPinned');
+    
+    if (savedMinimized !== null) {
+      this.isMinimized = savedMinimized === 'true';
+    }
+    
+    if (savedPinned !== null) {
+      this.isPinned = savedPinned === 'true';
+    }
+
     // Suscribirse al estado del servicio de voz
     this.voiceChatService.isConnected$
       .pipe(takeUntil(this.destroy$))
@@ -111,5 +126,15 @@ export class VoiceChatComponent implements OnInit, OnDestroy {
 
   getSpeakingUsers(): VoiceUser[] {
     return this.getVoiceUsersArray().filter(u => u.isSpeaking);
+  }
+
+  toggleMinimize(): void {
+    this.isMinimized = !this.isMinimized;
+    localStorage.setItem('voiceChatMinimized', this.isMinimized.toString());
+  }
+
+  togglePin(): void {
+    this.isPinned = !this.isPinned;
+    localStorage.setItem('voiceChatPinned', this.isPinned.toString());
   }
 }

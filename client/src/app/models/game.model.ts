@@ -35,6 +35,7 @@ export interface GameState {
   presidentIndex: number;
   cabinetChiefId: string | null;
   nominatedCabinetChiefId: string | null;
+  votes?: { [playerId: string]: boolean };
   libertarianPolicies: number;
   kirchneristaPolicies: number;
   failedGovernments: number;

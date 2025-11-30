@@ -729,6 +729,7 @@ class GameState {
       presidentIndex: this.presidentIndex,
       cabinetChiefId: this.cabinetChiefId,
       nominatedCabinetChiefId: this.nominatedCabinetChiefId,
+      votes: this.votes,
       libertarianPolicies: this.libertarianPolicies,
       kirchneristaPolicies: this.kirchneristaPolicies,
       failedGovernments: this.failedGovernments,

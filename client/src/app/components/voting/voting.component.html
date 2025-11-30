@@ -127,7 +127,60 @@
     </div>
   </div>
 
-  <div class="voting-info mt-3 text-center text-muted">
+  <!-- Lista de jugadores que ya votaron -->
+  <div class="voting-status mt-3" *ngIf="gameState.votes">
+    <div class="voted-players-section">
+      <h4 class="text-center">✅ Ya votaron ({{ getVotedPlayers(gameState).length }}/{{ getAlivePlayers(gameState) }})</h4>
+      <div class="voted-players-list">
+        <div 
+          *ngFor="let player of getVotedPlayers(gameState)"
+          class="voted-player-item"
+          [class.vote-yes]="getPlayerVote(player.id, gameState) === true"
+          [class.vote-no]="getPlayerVote(player.id, gameState) === false"
+        >
+          <span class="vote-icon-small">
+            {{ getPlayerVote(player.id, gameState) ? '✊' : '🚫' }}
+          </span>
+          <span class="player-name">{{ player.name }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="pending-players-section" *ngIf="getPendingPlayers(gameState).length > 0">
+      <h4 class="text-center">⏳ Pendientes ({{ getPendingPlayers(gameState).length }})</h4>
+      <div class="pending-players-list">
+        <div 
+          *ngFor="let player of getPendingPlayers(gameState)"
+          class="pending-player-item"
+        >
+          <span class="player-name">{{ player.name }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Botón Continuar cuando todos votaron -->
+  <div class="continue-section mt-3" *ngIf="allPlayersVoted(gameState)">
+    <div class="text-center mb-3">
+      <p class="text-success" style="font-weight: 700; font-size: 16px;">
+        ✅ Todos los jugadores han votado
+      </p>
+      <p class="text-muted" style="font-size: 14px;">
+        Presioná "Continuar" para procesar el resultado y proceder a la promulgación
+      </p>
+    </div>
+    <div class="text-center">
+      <button 
+        class="btn btn-primary btn-large"
+        (click)="processVoteResult()"
+        style="padding: 14px 32px; font-size: 16px; font-weight: 700;"
+      >
+        ➡️ Continuar
+      </button>
+    </div>
+  </div>
+
+  <div class="voting-info mt-3 text-center text-muted" *ngIf="!allPlayersVoted(gameState)">
     <p>ℹ️ Los votos se revelarán cuando todos hayan votado</p>
     <p>Se necesita mayoría simple para aprobar el gobierno</p>
   </div>

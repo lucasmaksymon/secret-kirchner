@@ -48,6 +48,8 @@ export class GameStateService {
         this.currentPlayerIdSubject.next(data.playerId);
         this.gameStateSubject.next(data.gameState);
         this.saveSession(data.gameState.roomId, data.playerId);
+        // Limpiar mensajes del chat al crear/entrar a una nueva sala
+        this.chatMessagesSubject.next([]);
       }
     });
 
@@ -56,6 +58,8 @@ export class GameStateService {
         this.currentPlayerIdSubject.next(data.playerId);
         this.gameStateSubject.next(data.gameState);
         this.saveSession(data.gameState.roomId, data.playerId);
+        // Limpiar mensajes del chat al crear/entrar a una nueva sala
+        this.chatMessagesSubject.next([]);
       }
     });
 
@@ -69,6 +73,8 @@ export class GameStateService {
         if (data.knownPlayers) {
           this.knownPlayersSubject.next(data.knownPlayers);
         }
+        // Limpiar mensajes del chat al reconectar (por si cambió de sala)
+        this.chatMessagesSubject.next([]);
       }
     });
 
@@ -104,7 +110,17 @@ export class GameStateService {
     });
 
     this.socketService.on('vote-cast').subscribe((data: any) => {
-      // Update UI to show vote was cast
+      // Actualizar gameState con los votos actualizados
+      if (data?.gameState) {
+        this.gameStateSubject.next(data.gameState);
+      }
+    });
+
+    this.socketService.on('all-votes-cast').subscribe((data: any) => {
+      // Todos votaron, actualizar gameState
+      if (data?.gameState) {
+        this.gameStateSubject.next(data.gameState);
+      }
     });
 
     this.socketService.on('vote-result').subscribe((data: any) => {

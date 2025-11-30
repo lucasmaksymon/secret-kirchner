@@ -16,6 +16,7 @@ import { ExecutivePowerComponent } from './components/executive-power/executive-
 import { ChatComponent } from './components/chat/chat.component';
 import { GameOverComponent } from './components/game-over/game-over.component';
 import { VoiceChatComponent } from './components/voice-chat/voice-chat.component';
+import { UnifiedChatComponent } from './components/unified-chat/unified-chat.component';
 import { DevComponent } from './components/dev/dev.component';
 
 @NgModule({
@@ -32,6 +33,7 @@ import { DevComponent } from './components/dev/dev.component';
     ChatComponent,
     GameOverComponent,
     VoiceChatComponent,
+    UnifiedChatComponent,
     DevComponent
   ],
   imports: [

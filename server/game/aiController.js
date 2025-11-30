@@ -143,22 +143,25 @@ function handleAIVoting(io, roomId, gameState) {
       
       const result = gameState.castVote(aiPlayer.id, vote);
       
-      if (result.success) {
-        const voteCount = Object.keys(gameState.votes).length;
-        
-        io.to(roomId).emit('vote-cast', {
-          playerName: aiPlayer.name,
-          voteCount: voteCount,
-          totalPlayers: gameState.alivePlayers.length,
-          gameState: gameState.toJSON()
-        });
-        
-        // Si todos votaron, procesar resultado
-        if (voteCount === gameState.alivePlayers.length) {
-          console.log('✅ Todos han votado, procesando resultado...');
-          processVotingResult(io, roomId, gameState);
+        if (result.success) {
+          const voteCount = Object.keys(gameState.votes).length;
+          
+          io.to(roomId).emit('vote-cast', {
+            playerName: aiPlayer.name,
+            voteCount: voteCount,
+            totalPlayers: gameState.alivePlayers.length,
+            gameState: gameState.toJSON()
+          });
+          
+          // Si todos votaron, emitir evento para que el cliente muestre botón "Continuar"
+          if (voteCount === gameState.alivePlayers.length) {
+            console.log('✅ Todos han votado, esperando confirmación para procesar...');
+            io.to(roomId).emit('all-votes-cast', {
+              gameState: gameState.toJSON(),
+              message: 'Todos los jugadores han votado'
+            });
+          }
         }
-      }
     }, index * 1000); // Escalonar votos
   });
 }

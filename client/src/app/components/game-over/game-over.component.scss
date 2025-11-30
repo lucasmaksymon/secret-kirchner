@@ -28,12 +28,11 @@
   .modal-content {
     position: relative;
     z-index: 2001;
-    max-width: 900px;
+    max-width: 700px;
     width: 100%;
-    max-height: 95vh;
+    max-height: 90vh;
     overflow-y: auto;
-    animation: slideDown 0.5s ease-out;
-    padding: 20px;
+    padding: 16px;
 
     &::-webkit-scrollbar {
       width: 6px;
@@ -50,63 +49,51 @@
   }
 }
 
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-50px) scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
 .game-over-title {
   text-align: center;
-  font-size: 32px;
-  margin-bottom: 16px;
+  font-size: 24px;
+  margin-bottom: 12px;
   font-weight: 800;
 }
 
 .winner-section {
   text-align: center;
-  padding: 20px 24px;
-  border-radius: 12px;
-  border: 3px solid;
-  animation: pulse 2s infinite;
+  padding: 14px 16px;
+  border-radius: 10px;
+  border: 2px solid;
 
   &.libertarios-win {
-    background: rgba(74, 144, 226, 0.1);
+    background: rgba(155, 89, 182, 0.1);
     border-color: var(--color-libertario);
   }
 
   &.kirchneristas-win {
-    background: rgba(155, 89, 182, 0.1);
+    background: rgba(74, 144, 226, 0.1);
     border-color: var(--color-kirchnerista);
   }
 
   .winner-icon {
-    font-size: 56px;
-    margin-bottom: 8px;
+    font-size: 40px;
+    margin-bottom: 6px;
   }
 
   .winner-team {
-    font-size: 32px;
-    margin-bottom: 6px;
+    font-size: 22px;
+    margin-bottom: 4px;
     font-weight: 900;
-    letter-spacing: 3px;
+    letter-spacing: 2px;
   }
 
   .winner-text {
-    font-size: 24px;
-    margin-bottom: 10px;
+    font-size: 18px;
+    margin-bottom: 8px;
     color: var(--color-success);
     font-weight: 700;
   }
 
   .win-reason {
-    font-size: 15px;
-    line-height: 1.4;
+    font-size: 13px;
+    line-height: 1.3;
     color: var(--color-text-secondary);
     margin-bottom: 0;
   }
@@ -115,56 +102,56 @@
 .teams-reveal {
   h3 {
     text-align: center;
-    margin-bottom: 12px;
-    font-size: 20px;
+    margin-bottom: 10px;
+    font-size: 16px;
     font-weight: 700;
   }
 
   .teams-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 12px;
+    gap: 10px;
   }
 
   .team-section {
-    padding: 12px;
+    padding: 10px;
     border-radius: 8px;
     border: 2px solid;
 
     &.libertarios-section {
-      background: rgba(74, 144, 226, 0.05);
+      background: rgba(155, 89, 182, 0.05);
       border-color: var(--color-libertario);
     }
 
     &.kirchneristas-section {
-      background: rgba(155, 89, 182, 0.05);
+      background: rgba(74, 144, 226, 0.05);
       border-color: var(--color-kirchnerista);
     }
 
     h4 {
-      margin-bottom: 10px;
-      font-size: 16px;
+      margin-bottom: 8px;
+      font-size: 14px;
       font-weight: 700;
     }
 
     .team-players {
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 5px;
     }
 
     .player-reveal {
-      padding: 8px 10px;
+      padding: 6px 8px;
       background: var(--color-bg-tertiary);
-      border-radius: 6px;
+      border-radius: 5px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 6px;
+      gap: 5px;
 
       .player-name {
         font-weight: 600;
-        font-size: 13px;
+        font-size: 12px;
         flex: 1;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -172,8 +159,8 @@
       }
 
       .player-badge {
-        font-size: 11px;
-        padding: 3px 6px;
+        font-size: 10px;
+        padding: 2px 5px;
         border-radius: 3px;
         font-weight: 700;
         flex-shrink: 0;
@@ -195,29 +182,29 @@
 }
 
 .game-stats {
-  padding: 16px;
+  padding: 12px;
   background: var(--color-bg-tertiary);
   border-radius: 8px;
 
   .stat-row {
     display: flex;
     justify-content: space-around;
-    gap: 16px;
+    gap: 12px;
   }
 
   .stat-item {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 4px;
+    gap: 3px;
 
     .stat-label {
-      font-size: 12px;
+      font-size: 11px;
       color: var(--color-text-secondary);
     }
 
     .stat-value {
-      font-size: 28px;
+      font-size: 22px;
       font-weight: 900;
 
       &.libertario {
@@ -236,116 +223,116 @@
   justify-content: center;
 
   .btn-large {
-    padding: 12px 36px;
-    font-size: 16px;
+    padding: 10px 28px;
+    font-size: 14px;
     font-weight: 600;
   }
 }
 
 .footer-message {
   p {
-    margin: 3px 0;
-    font-size: 13px;
+    margin: 2px 0;
+    font-size: 12px;
   }
 }
 
 @media (max-width: 768px) {
   .game-over-modal {
-    padding: 10px;
+    padding: 8px;
 
     .modal-content {
-      padding: 16px;
-      max-height: 96vh;
+      padding: 12px;
+      max-height: 95vh;
     }
   }
 
   .game-over-title {
-    font-size: 26px;
-    margin-bottom: 12px;
+    font-size: 20px;
+    margin-bottom: 10px;
   }
 
   .winner-section {
-    padding: 16px;
+    padding: 12px;
 
     .winner-icon {
-      font-size: 44px;
-      margin-bottom: 6px;
-    }
-
-    .winner-team {
-      font-size: 24px;
-      letter-spacing: 2px;
+      font-size: 32px;
       margin-bottom: 4px;
     }
 
-    .winner-text {
+    .winner-team {
       font-size: 18px;
-      margin-bottom: 8px;
+      letter-spacing: 1px;
+      margin-bottom: 3px;
+    }
+
+    .winner-text {
+      font-size: 16px;
+      margin-bottom: 6px;
     }
 
     .win-reason {
-      font-size: 13px;
+      font-size: 12px;
     }
   }
 
   .teams-reveal {
     h3 {
-      font-size: 16px;
-      margin-bottom: 10px;
+      font-size: 14px;
+      margin-bottom: 8px;
     }
 
     .teams-grid {
       grid-template-columns: 1fr;
-      gap: 10px;
+      gap: 8px;
     }
 
     .team-section {
-      padding: 10px;
+      padding: 8px;
 
       h4 {
-        font-size: 14px;
-        margin-bottom: 8px;
+        font-size: 13px;
+        margin-bottom: 6px;
       }
 
       .player-reveal {
-        padding: 6px 8px;
+        padding: 5px 6px;
 
         .player-name {
-          font-size: 12px;
+          font-size: 11px;
         }
 
         .player-badge {
-          font-size: 10px;
+          font-size: 9px;
         }
       }
     }
   }
 
   .game-stats {
-    padding: 12px;
+    padding: 10px;
 
     .stat-row {
-      gap: 12px;
+      gap: 10px;
     }
 
     .stat-item {
       .stat-label {
-        font-size: 11px;
+        font-size: 10px;
       }
 
       .stat-value {
-        font-size: 22px;
+        font-size: 18px;
       }
     }
   }
 
   .actions .btn-large {
-    padding: 10px 28px;
-    font-size: 14px;
+    padding: 8px 24px;
+    font-size: 13px;
   }
 
   .footer-message p {
-    font-size: 12px;
+    font-size: 11px;
   }
 }
 

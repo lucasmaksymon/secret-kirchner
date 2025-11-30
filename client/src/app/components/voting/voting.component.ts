@@ -1,5 +1,5 @@
-import { Component, OnInit } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Observable, Subscription } from 'rxjs';
 import { GameStateService } from '../../services/game-state.service';
 import { SocketService } from '../../services/socket.service';
 import { GameState, Player } from '../../models/game.model';
@@ -9,11 +9,12 @@ import { GameState, Player } from '../../models/game.model';
   templateUrl: './voting.component.html',
   styleUrls: ['./voting.component.scss']
 })
-export class VotingComponent implements OnInit {
+export class VotingComponent implements OnInit, OnDestroy {
   gameState$: Observable<GameState | null>;
   hasVoted: boolean = false;
   selectedVote: boolean | null = null;
   activeTab: string | null = null;
+  private gameStateSubscription?: Subscription;
 
   constructor(
     private gameStateService: GameStateService,
@@ -22,7 +23,24 @@ export class VotingComponent implements OnInit {
     this.gameState$ = this.gameStateService.gameState$;
   }
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    // Suscribirse a cambios del gameState para actualizar hasVoted
+    this.gameStateSubscription = this.gameState$.subscribe(gameState => {
+      if (gameState && gameState.votes) {
+        const currentPlayer = this.gameStateService.getCurrentPlayer();
+        if (currentPlayer && currentPlayer.id in gameState.votes) {
+          this.hasVoted = true;
+          this.selectedVote = gameState.votes[currentPlayer.id];
+        }
+      }
+    });
+  }
+
+  ngOnDestroy(): void {
+    if (this.gameStateSubscription) {
+      this.gameStateSubscription.unsubscribe();
+    }
+  }
 
   showTab(tab: string): void {
     this.activeTab = tab;
@@ -71,5 +89,36 @@ export class VotingComponent implements OnInit {
 
   getDeadPlayers(gameState: GameState): number {
     return gameState.players.filter(p => p.isDead).length;
+  }
+
+  getVotedPlayers(gameState: GameState): Player[] {
+    if (!gameState.votes) return [];
+    const votedPlayerIds = Object.keys(gameState.votes);
+    return gameState.players.filter(p => votedPlayerIds.includes(p.id) && !p.isDead);
+  }
+
+  getPendingPlayers(gameState: GameState): Player[] {
+    if (!gameState.votes) return gameState.players.filter(p => !p.isDead);
+    const votedPlayerIds = Object.keys(gameState.votes);
+    return gameState.players.filter(p => !votedPlayerIds.includes(p.id) && !p.isDead);
+  }
+
+  hasPlayerVoted(playerId: string, gameState: GameState): boolean {
+    return gameState.votes ? playerId in gameState.votes : false;
+  }
+
+  getPlayerVote(playerId: string, gameState: GameState): boolean | null {
+    if (!gameState.votes || !(playerId in gameState.votes)) return null;
+    return gameState.votes[playerId];
+  }
+
+  allPlayersVoted(gameState: GameState): boolean {
+    if (!gameState.votes) return false;
+    const voteCount = Object.keys(gameState.votes).length;
+    return voteCount === this.getAlivePlayers(gameState);
+  }
+
+  processVoteResult(): void {
+    this.socketService.processVoteResult();
   }
 }

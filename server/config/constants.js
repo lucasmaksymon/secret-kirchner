@@ -25,6 +25,7 @@ const SOCKET_EVENTS = {
   // Game
   NOMINATE_CABINET_CHIEF: 'nominate-cabinet-chief',
   CAST_VOTE: 'cast-vote',
+  PROCESS_VOTE_RESULT: 'process-vote-result',
   PRESIDENT_DISCARD: 'president-discard',
   CABINET_CHIEF_ENACT: 'cabinet-chief-enact',
   REQUEST_VETO: 'request-veto',

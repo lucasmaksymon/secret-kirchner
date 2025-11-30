@@ -296,6 +296,87 @@
   }
 }
 
+.voting-status {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 16px;
+
+  h4 {
+    margin: 0 0 10px 0;
+    font-size: 14px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+}
+
+.voted-players-section,
+.pending-players-section {
+  background: var(--color-bg-tertiary);
+  border: 2px solid var(--color-border);
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.voted-players-list,
+.pending-players-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.voted-player-item,
+.pending-player-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  background: var(--color-bg-secondary);
+  border: 2px solid var(--color-border);
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+
+  .vote-icon-small {
+    font-size: 16px;
+  }
+
+  .player-name {
+    color: var(--color-text-primary);
+  }
+
+  &.vote-yes {
+    border-color: var(--color-success);
+    background: rgba(39, 174, 96, 0.1);
+  }
+
+  &.vote-no {
+    border-color: var(--color-danger);
+    background: rgba(231, 76, 60, 0.1);
+  }
+}
+
+.pending-player-item {
+  opacity: 0.7;
+}
+
+.continue-section {
+  background: var(--color-bg-tertiary);
+  border: 2px solid var(--color-success);
+  border-radius: 10px;
+  padding: 20px;
+  margin-top: 20px;
+
+  .btn-large {
+    padding: 14px 32px;
+    font-size: 16px;
+    font-weight: 700;
+    border-radius: 8px;
+    min-height: 50px;
+  }
+}
+
 .voting-info {
   p {
     margin: 4px 0;

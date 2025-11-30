@@ -14,7 +14,7 @@ export class DevComponent implements OnInit, OnDestroy {
   
   screens = [
     { name: 'Home', route: '/', component: 'HomeComponent' },
-    { name: 'Lobby', route: '/lobby/test-room', component: 'LobbyComponent' },
+    { name: 'Lobby', component: 'LobbyComponent', standalone: true },
     { name: 'Game', component: 'GameComponent', standalone: true },
     { name: 'Board', component: 'BoardComponent', standalone: true },
     { name: 'Chat', component: 'ChatComponent', standalone: true },
@@ -103,6 +103,61 @@ export class DevComponent implements OnInit, OnDestroy {
         id: 'player5',
         socketId: 'socket5',
         name: 'Jugador 5',
+        role: { type: 'libertario', team: 'libertarios' },
+        isDead: false,
+        isReady: true,
+        wasInvestigated: false,
+        votes: [],
+        isAI: false
+      },
+      {
+        id: 'player6',
+        socketId: 'socket6',
+        name: 'Jugador 6',
+        role: { type: 'libertario', team: 'libertarios' },
+        isDead: false,
+        isReady: true,
+        wasInvestigated: false,
+        votes: [],
+        isAI: false
+      },
+      {
+        id: 'player7',
+        socketId: 'socket7',
+        name: 'Jugador 7',
+        role: { type: 'libertario', team: 'libertarios' },
+        isDead: false,
+        isReady: true,
+        wasInvestigated: false,
+        votes: [],
+        isAI: false
+      },
+      {
+        id: 'player8',
+        socketId: 'socket8',
+        name: 'Jugador 8',
+        role: { type: 'libertario', team: 'libertarios' },
+        isDead: false,
+        isReady: true,
+        wasInvestigated: false,
+        votes: [],
+        isAI: false
+      },
+      {
+        id: 'player9',
+        socketId: 'socket9',
+        name: 'Jugador 5',
+        role: { type: 'libertario', team: 'libertarios' },
+        isDead: false,
+        isReady: true,
+        wasInvestigated: false,
+        votes: [],
+        isAI: false
+      },
+      {
+        id: 'player10',
+        socketId: 'socket10',
+        name: 'Jugador 10',
         role: { type: 'libertario', team: 'libertarios' },
         isDead: false,
         isReady: true,

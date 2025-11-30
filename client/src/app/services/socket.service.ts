@@ -79,6 +79,10 @@ export class SocketService {
     this.emit('cast-vote', { vote });
   }
 
+  processVoteResult(): void {
+    this.emit('process-vote-result');
+  }
+
   // Legislación
   presidentDiscard(cardIndex: number): void {
     this.emit('president-discard', { cardIndex });

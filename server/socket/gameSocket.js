@@ -470,12 +470,16 @@ function initializeSocket(io) {
           io.to(roomId).emit('vote-cast', {
             playerId: socket.data.playerId,
             voteCount: voteCount,
-            totalVoters: gameState.alivePlayers.length
+            totalVoters: gameState.alivePlayers.length,
+            gameState: gameState.toJSON()
           });
           
           if (voteCount === gameState.alivePlayers.length) {
-            const { processVotingResult } = require('../game/aiController');
-            processVotingResult(io, roomId, gameState);
+            // Todos votaron, emitir evento para que el cliente muestre botón "Continuar"
+            io.to(roomId).emit('all-votes-cast', {
+              gameState: gameState.toJSON(),
+              message: 'Todos los jugadores han votado'
+            });
           } else {
             handleAITurn(io, roomId, gameState, GAME_PHASES.ELECTION);
           }
@@ -485,6 +489,38 @@ function initializeSocket(io) {
       } catch (error) {
         logger.error('Error al emitir voto:', error);
         socket.emit('error', { message: 'Error al emitir voto' });
+      }
+    });
+
+    /**
+     * Procesa el resultado de la votación cuando todos han votado
+     */
+    socket.on(SOCKET_EVENTS.PROCESS_VOTE_RESULT, () => {
+      try {
+        const roomId = socket.data.roomId;
+        const gameState = rooms.get(roomId);
+        
+        if (!gameState) {
+          socket.emit('error', { message: ERROR_MESSAGES.ROOM_NOT_FOUND });
+          return;
+        }
+        
+        if (gameState.phase !== GAME_PHASES.ELECTION) {
+          socket.emit('error', { message: 'No hay una votación en curso' });
+          return;
+        }
+        
+        const voteCount = Object.keys(gameState.votes).length;
+        if (voteCount !== gameState.alivePlayers.length) {
+          socket.emit('error', { message: 'No todos los jugadores han votado' });
+          return;
+        }
+        
+        const { processVotingResult } = require('../game/aiController');
+        processVotingResult(io, roomId, gameState);
+      } catch (error) {
+        logger.error('Error al procesar resultado de votación:', error);
+        socket.emit('error', { message: 'Error al procesar resultado de votación' });
       }
     });
 

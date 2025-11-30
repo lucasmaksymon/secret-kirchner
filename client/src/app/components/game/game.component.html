@@ -51,57 +51,33 @@
 
     <!-- Main Content -->
     <div class="game-content">
-      <div class="game-grid">
-        <!-- Left Column: Board, Players and Actions -->
-        <div class="main-column">
-          <app-board></app-board>
+      <div class="main-column">
+        <app-board></app-board>
 
-          <app-player-list></app-player-list>
+        <app-player-list></app-player-list>
 
-          <!-- Phase-specific content -->
-          <div class="phase-content" *ngIf="gameState.phase === 'game_over'">
-            <app-game-over
-              *ngIf="gameState.phase === 'game_over'"
-            ></app-game-over>
-          </div>
-        </div>
-
-        <!-- Right Column: Voice Chat and Chat -->
-        <div class="side-column">
-          <div class="voice-chat-wrapper">
-            <app-voice-chat 
-              *ngIf="gameState"
-              [roomId]="gameState.roomId"
-              [playerId]="currentPlayerId || ''"
-            ></app-voice-chat>
-          </div>
-          <app-chat></app-chat>
+        <!-- Phase-specific content -->
+        <div class="phase-content" *ngIf="gameState.phase === 'game_over'">
+          <app-game-over
+            *ngIf="gameState.phase === 'game_over'"
+          ></app-game-over>
         </div>
       </div>
     </div>
+
+    <!-- Unified Chat Bubble (floating) -->
+    <app-unified-chat
+      *ngIf="gameState"
+      [roomId]="gameState.roomId"
+      [playerId]="currentPlayerId || ''"
+      [embedded]="false"
+    ></app-unified-chat>
 
     <!-- Voting Modal -->
     <div class="voting-modal" *ngIf="gameState.phase === 'election'">
       <div class="modal-overlay"></div>
       <div class="modal-dialog">
-        <div class="modal-split">
-          <div class="modal-voting">
-            <app-voting></app-voting>
-          </div>
-          <div class="modal-sidebar">
-            <div class="voice-chat-wrapper">
-              <app-voice-chat 
-                *ngIf="gameState"
-                [roomId]="gameState.roomId"
-                [playerId]="currentPlayerId || ''"
-              ></app-voice-chat>
-            </div>
-            <div class="modal-chat">
-              <h4>💬 Chat</h4>
-              <app-chat></app-chat>
-            </div>
-          </div>
-        </div>
+        <app-voting></app-voting>
       </div>
     </div>
 
@@ -109,24 +85,7 @@
     <div class="policy-modal" *ngIf="gameState.phase === 'legislative_president' || gameState.phase === 'legislative_cabinet'">
       <div class="modal-overlay"></div>
       <div class="modal-dialog">
-        <div class="modal-split">
-          <div class="modal-content-area">
-            <app-policy-cards></app-policy-cards>
-          </div>
-          <div class="modal-sidebar">
-            <div class="voice-chat-wrapper">
-              <app-voice-chat 
-                *ngIf="gameState"
-                [roomId]="gameState.roomId"
-                [playerId]="currentPlayerId || ''"
-              ></app-voice-chat>
-            </div>
-            <div class="modal-chat">
-              <h4>💬 Chat</h4>
-              <app-chat></app-chat>
-            </div>
-          </div>
-        </div>
+        <app-policy-cards></app-policy-cards>
       </div>
     </div>
 
@@ -134,24 +93,7 @@
     <div class="executive-power-modal" *ngIf="gameState.phase === 'executive_power'">
       <div class="modal-overlay"></div>
       <div class="modal-dialog">
-        <div class="modal-split">
-          <div class="modal-content-area">
-            <app-executive-power></app-executive-power>
-          </div>
-          <div class="modal-sidebar">
-            <div class="voice-chat-wrapper">
-              <app-voice-chat 
-                *ngIf="gameState"
-                [roomId]="gameState.roomId"
-                [playerId]="currentPlayerId || ''"
-              ></app-voice-chat>
-            </div>
-            <div class="modal-chat">
-              <h4>💬 Chat</h4>
-              <app-chat></app-chat>
-            </div>
-          </div>
-        </div>
+        <app-executive-power></app-executive-power>
       </div>
     </div>
   </div>

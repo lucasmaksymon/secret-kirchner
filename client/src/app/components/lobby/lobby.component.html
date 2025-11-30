@@ -114,14 +114,6 @@
       </div>
 
       <div class="info-section">
-        <!-- Voice Chat -->
-        <div class="voice-chat-section card">
-          <h3>🎤 Chat de Voz</h3>
-          <app-voice-chat 
-            [roomId]="gameState.roomId"
-            [playerId]="currentPlayerId || ''"
-          ></app-voice-chat>
-        </div>
 
         <div class="accordion-item">
           <div class="accordion-header" (click)="toggleAccordion('rules')">
@@ -184,5 +176,13 @@
     </div>
 
   </div>
+
+  <!-- Unified Chat Bubble (floating) -->
+  <app-unified-chat
+    *ngIf="gameState"
+    [roomId]="gameState.roomId"
+    [playerId]="currentPlayerId || ''"
+    [embedded]="false"
+  ></app-unified-chat>
 </div>
 

@@ -59,9 +59,13 @@
 
     <div *ngIf="selectedScreen === 'ChatComponent'" class="component-wrapper">
       <div class="dev-note">
-        <p>💬 Componente de chat. Requiere conexión al servidor para funcionar completamente.</p>
+        <p>💬 Componente de chat unificado. Requiere conexión al servidor para funcionar completamente.</p>
       </div>
-      <app-chat></app-chat>
+      <app-unified-chat
+        [roomId]="'dev-room'"
+        [playerId]="'dev-player'"
+        [embedded]="true"
+      ></app-unified-chat>
     </div>
 
     <div *ngIf="selectedScreen === 'ExecutivePowerComponent'" class="component-wrapper">
@@ -101,12 +105,20 @@
 
     <div *ngIf="selectedScreen === 'VoiceChatComponent'" class="component-wrapper">
       <div class="dev-note">
-        <p>🎤 Componente de chat de voz. Requiere permisos de micrófono.</p>
+        <p>🎤 Componente de chat unificado (incluye voz y texto). Requiere permisos de micrófono para el chat de voz.</p>
       </div>
-      <app-voice-chat 
+      <app-unified-chat 
         [roomId]="'dev-room'"
         [playerId]="'dev-player'"
-      ></app-voice-chat>
+        [embedded]="true"
+      ></app-unified-chat>
+    </div>
+
+    <div *ngIf="selectedScreen === 'LobbyComponent'" class="component-wrapper">
+      <div class="dev-note">
+        <p>🏛️ Componente del lobby. Muestra la lista de jugadores y permite iniciar el juego.</p>
+      </div>
+      <app-lobby></app-lobby>
     </div>
   </div>
 </div>

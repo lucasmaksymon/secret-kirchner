@@ -1,83 +1,7 @@
-<div class="board-container card" *ngIf="gameState$ | async as gameState">
-  <h3 class="text-center mb-1" style="font-size: 14px; margin: 0 0 8px 0; text-transform: uppercase; letter-spacing: 0.5px;">📊 Tablero</h3>
-
+<div class="board-container" *ngIf="gameState$ | async as gameState">
   <div class="board-layout">
-    <!-- Top Row: 4 Columns Info -->
-    <div class="info-row-top">
-      <!-- Rechazos -->
-      <div class="info-card">
-        <div class="tracker-header">
-          <h4>🗳️ Rechazos</h4>
-          <span class="chaos-warning" *ngIf="gameState.failedGovernments >= 2">⚠️</span>
-        </div>
-        <div class="election-markers">
-          <div 
-            *ngFor="let i of [0, 1, 2]"
-            class="election-marker"
-            [class.active]="i < gameState.failedGovernments"
-          >
-            {{ i < gameState.failedGovernments ? '✗' : '○' }}
-          </div>
-        </div>
-        <div class="tracker-count">{{ gameState.failedGovernments }}/3</div>
-      </div>
-
-      <!-- Vivos/Muertos -->
-      <div class="info-card">
-        <h4>👥 Jugadores</h4>
-        <div class="players-status-compact">
-          <div class="stat-item">
-            <span class="stat-icon">💚</span>
-            <span class="stat-value">{{ getAlivePlayers(gameState) }}</span>
-            <span class="stat-label">Vivos</span>
-          </div>
-          <div class="stat-item">
-            <span class="stat-icon">💀</span>
-            <span class="stat-value">{{ getDeadPlayers(gameState) }}</span>
-            <span class="stat-label">Muertos</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Presidente/Legislador -->
-      <div class="info-card">
-        <h4>🏛️ Gobierno</h4>
-        <div class="government-compact">
-          <div class="government-item">
-            <span class="role-label">🎩</span>
-            <span class="player-name">{{ president?.name || '-' }}</span>
-          </div>
-          <div class="government-item">
-            <span class="role-label">💼</span>
-            <span class="player-name">{{ cabinetChief?.name || '-' }}</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Cartas del mazo -->
-      <div class="info-card">
-        <h4>🃏 Cartas</h4>
-        <div class="deck-compact">
-          <div class="stat-item">
-            <span class="stat-icon">📚</span>
-            <span class="stat-value">{{ gameState.deckSize }}</span>
-            <span class="stat-label">Mazo</span>
-          </div>
-          <div class="stat-item">
-            <span class="stat-icon">🗑️</span>
-            <span class="stat-value">{{ gameState.discardSize }}</span>
-            <span class="stat-label">Descarte</span>
-          </div>
-          <div class="stat-item" *ngIf="gameState.vetoUnlocked">
-            <span class="stat-icon">🚫</span>
-            <span class="stat-label">Veto</span>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Bottom Row: Policy Tracks (2 Columns) -->
-    <div class="policies-row">
+    <!-- Left Section: Policy Tracks -->
+    <div class="policies-section">
       <!-- Libertarian Track -->
       <div class="policy-track libertario-track">
         <div class="track-header">
@@ -130,6 +54,84 @@
               [attr.data-tooltip]="getPowerTooltip(getPowerIconEmpty(i))"
             >{{ getPowerIconEmpty(i) }}</span>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Section: Game Info -->
+    <div class="info-section">
+      <!-- Rechazos -->
+      <div class="info-card">
+          <h4>🗳️ Rechazos <span class="chaos-warning" *ngIf="gameState.failedGovernments >= 2">⚠️</span></h4>
+        <div class="election-markers">
+          <div 
+            *ngFor="let i of [0, 1, 2]"
+            class="election-marker"
+            [class.active]="i < gameState.failedGovernments"
+          >
+            {{ i < gameState.failedGovernments ? '✗' : '○' }}
+          </div>
+        </div>
+        <div class="tracker-count">{{ gameState.failedGovernments }}/3</div>
+      </div>
+
+      <!-- Gobierno -->
+      <div class="info-card">
+        <h4>🏛️ Gobierno</h4>
+        <div class="government-list">
+          <div class="government-item">
+            <span class="role-icon">🎩</span>
+            <div class="role-info">
+              <span class="role-label">Presidente</span>
+              <span class="player-name">{{ president?.name || '-' }}</span>
+            </div>
+          </div>
+          <div class="government-item">
+            <span class="role-icon">💼</span>
+            <div class="role-info">
+              <span class="role-label">Jefe de Gabinete</span>
+              <span class="player-name">{{ cabinetChief?.name || '-' }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Estadísticas -->
+      <div class="info-card">
+        <h4>📊 Estadísticas</h4>
+        <div class="stats-grid">
+          <div class="stat-item">
+            <span class="stat-icon">💚</span>
+            <div class="stat-content">
+              <span class="stat-value">{{ getAlivePlayers(gameState) }}</span>
+              <span class="stat-label">Vivos</span>
+            </div>
+          </div>
+          <div class="stat-item">
+            <span class="stat-icon">💀</span>
+            <div class="stat-content">
+              <span class="stat-value">{{ getDeadPlayers(gameState) }}</span>
+              <span class="stat-label">Muertos</span>
+            </div>
+          </div>
+          <div class="stat-item">
+            <span class="stat-icon">📚</span>
+            <div class="stat-content">
+              <span class="stat-value">{{ gameState.deckSize }}</span>
+              <span class="stat-label">Mazo</span>
+            </div>
+          </div>
+          <div class="stat-item">
+            <span class="stat-icon">🗑️</span>
+            <div class="stat-content">
+              <span class="stat-value">{{ gameState.discardSize }}</span>
+              <span class="stat-label">Descarte</span>
+            </div>
+          </div>
+        </div>
+        <div class="veto-indicator" *ngIf="gameState.vetoUnlocked">
+          <span class="veto-icon">🚫</span>
+          <span class="veto-text">Veto Desbloqueado</span>
         </div>
       </div>
     </div>

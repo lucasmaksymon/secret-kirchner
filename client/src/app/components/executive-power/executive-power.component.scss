@@ -1,9 +1,24 @@
 .executive-power-container {
   padding: 0;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+
+  @media (max-width: 768px) {
+    min-height: 100%;
+  }
 
   h3 {
     margin-bottom: 12px;
     font-size: 16px;
+    flex-shrink: 0;
+
+    @media (max-width: 768px) {
+      font-size: 15px;
+      margin-bottom: 10px;
+    }
   }
 }
 
@@ -217,8 +232,157 @@
 
 @media (max-width: 768px) {
   .power-section {
-    .player-selection .player-grid {
-      grid-template-columns: 1fr;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+
+    .power-info {
+      padding: 12px;
+      flex-shrink: 0;
+
+      .power-icon {
+        font-size: 40px;
+        margin-bottom: 8px;
+      }
+
+      h4 {
+        font-size: 18px;
+        margin-bottom: 6px;
+      }
+
+      .power-description {
+        font-size: 13px;
+      }
+    }
+
+    .player-selection {
+      flex-shrink: 0;
+      margin-top: 12px;
+
+      h5 {
+        margin-bottom: 12px;
+        font-size: 15px;
+      }
+
+      .player-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+      }
+
+      .player-option {
+        padding: 12px;
+        min-height: 48px;
+        touch-action: manipulation;
+
+        .player-name {
+          font-size: 14px;
+        }
+
+        .selected-badge {
+          padding: 3px 10px;
+          font-size: 12px;
+        }
+      }
+    }
+
+    .power-actions {
+      flex-shrink: 0;
+      margin-top: 12px;
+      width: 100%;
+
+      .btn-large {
+        width: 100%;
+        padding: 14px 24px;
+        font-size: 16px;
+        min-height: 48px;
+        touch-action: manipulation;
+      }
+
+      .text-muted {
+        font-size: 13px;
+        margin-top: 8px;
+      }
+    }
+
+    .peek-result {
+      padding: 12px;
+      margin-top: 12px;
+      flex-shrink: 0;
+
+      h5 {
+        font-size: 14px;
+        margin-bottom: 10px;
+      }
+
+      .peek-cards {
+        gap: 8px;
+      }
+
+      .peek-card {
+        min-width: 100px;
+        padding: 12px 8px;
+
+        .peek-card-number {
+          width: 20px;
+          height: 20px;
+          font-size: 11px;
+        }
+
+        .peek-card-icon {
+          font-size: 24px;
+          margin-bottom: 6px;
+        }
+
+        .peek-card-type {
+          font-size: 10px;
+        }
+
+        .peek-card-name {
+          font-size: 11px;
+        }
+      }
+    }
+
+    .investigate-result {
+      margin-top: 12px;
+      flex-shrink: 0;
+
+      .alert {
+        padding: 12px;
+
+        h5 {
+          font-size: 15px;
+          margin-bottom: 10px;
+        }
+
+        p {
+          font-size: 13px;
+          margin-bottom: 6px;
+        }
+
+        .small {
+          font-size: 11px;
+        }
+      }
+    }
+  }
+
+  .waiting-section {
+    padding: 40px 20px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    .spinner {
+      font-size: 48px;
+    }
+
+    p {
+      font-size: 16px;
+      margin-top: 12px;
     }
   }
 }

@@ -126,6 +126,11 @@
   gap: 20px;
   transition: background 0.3s, border-color 0.3s;
 
+  @media (max-width: 768px) {
+    padding: 10px 12px;
+    gap: 8px;
+  }
+
   &.team-libertario {
     background: linear-gradient(135deg, rgba(74, 144, 226, 0.15) 0%, var(--color-bg-secondary) 100%);
     border-bottom-color: var(--color-libertario);
@@ -144,15 +149,30 @@
     max-width: 100%;
     gap: 20px;
 
+    @media (max-width: 768px) {
+      flex-direction: column;
+      gap: 8px;
+      align-items: stretch;
+    }
+
     h2 {
       margin: 0;
       font-size: 24px;
       font-weight: 700;
       color: var(--color-text-primary);
+
+      @media (max-width: 768px) {
+        font-size: 18px;
+        text-align: center;
+      }
     }
 
     .team-indicator {
       flex-shrink: 0;
+
+      @media (max-width: 768px) {
+        align-self: center;
+      }
 
       .team-badge {
         padding: 8px 16px;
@@ -162,6 +182,11 @@
         text-transform: uppercase;
         letter-spacing: 0.5px;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+
+        @media (max-width: 768px) {
+          padding: 6px 12px;
+          font-size: 12px;
+        }
       }
     }
 
@@ -175,6 +200,13 @@
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
       text-transform: uppercase;
       letter-spacing: 0.5px;
+
+      @media (max-width: 768px) {
+        padding: 8px 16px;
+        font-size: 13px;
+        text-align: center;
+        align-self: center;
+      }
     }
   }
 
@@ -371,6 +403,11 @@
   justify-content: center;
   padding: 30px;
 
+  @media (max-width: 768px) {
+    padding: 0;
+    align-items: stretch;
+  }
+
   .modal-overlay {
     position: absolute;
     top: 0;
@@ -394,8 +431,26 @@
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
     padding: 32px;
 
+    @media (max-width: 768px) {
+      max-width: 100%;
+      max-height: 100vh;
+      height: 100vh;
+      border-radius: 0;
+      border: none;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+    }
+
     app-voting {
       display: block;
+      
+      @media (max-width: 768px) {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        overflow-y: auto;
+      }
     }
     
     &::-webkit-scrollbar {
@@ -426,6 +481,11 @@
   justify-content: center;
   padding: 30px;
 
+  @media (max-width: 768px) {
+    padding: 0;
+    align-items: stretch;
+  }
+
   .modal-overlay {
     position: absolute;
     top: 0;
@@ -449,9 +509,27 @@
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
     padding: 32px;
 
+    @media (max-width: 768px) {
+      max-width: 100%;
+      max-height: 100vh;
+      height: 100vh;
+      border-radius: 0;
+      border: none;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+    }
+
     app-policy-cards,
     app-executive-power {
       display: block;
+      
+      @media (max-width: 768px) {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        overflow-y: auto;
+      }
     }
     
     &::-webkit-scrollbar {
@@ -563,21 +641,23 @@
   }
 
   .voting-modal {
-    padding: 10px;
+    padding: 0;
 
     .modal-dialog {
-      max-height: 95vh;
-      padding: 16px;
+      max-height: 100vh;
+      height: 100vh;
+      padding: 12px;
     }
   }
 
   .policy-modal,
   .executive-power-modal {
-    padding: 10px;
+    padding: 0;
 
     .modal-dialog {
-      max-height: 95vh;
-      padding: 16px;
+      max-height: 100vh;
+      height: 100vh;
+      padding: 12px;
     }
   }
 

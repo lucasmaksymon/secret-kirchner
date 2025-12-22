@@ -28,6 +28,14 @@ body {
   height: 100vh;
   line-height: 1.6;
   overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  
+  @media (max-width: 768px) {
+    overflow-y: auto;
+    position: fixed;
+    width: 100%;
+    height: 100%;
+  }
 }
 
 /* Contenedores */
@@ -63,6 +71,18 @@ body {
   transition: all 0.3s;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  touch-action: manipulation;
+  user-select: none;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  @media (max-width: 768px) {
+    padding: 14px 20px;
+    font-size: 15px;
+    min-height: 48px;
+  }
 }
 
 .btn:hover {
@@ -72,6 +92,12 @@ body {
 
 .btn:active {
   transform: translateY(0);
+}
+
+@media (max-width: 768px) {
+  .btn:hover {
+    transform: none;
+  }
 }
 
 .btn-primary {
@@ -222,18 +248,43 @@ h2 {
 @media (max-width: 768px) {
   .container {
     padding: 10px;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
   }
   
   h1 {
-    font-size: 32px;
+    font-size: 28px;
   }
   
   h2 {
-    font-size: 24px;
+    font-size: 20px;
+  }
+
+  h3 {
+    font-size: 18px;
+  }
+
+  h4 {
+    font-size: 16px;
   }
   
   .card {
-    padding: 16px;
+    padding: 12px;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  /* Asegurar que no haya overflow horizontal */
+  * {
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  img, video, iframe {
+    max-width: 100%;
+    height: auto;
   }
 }
 

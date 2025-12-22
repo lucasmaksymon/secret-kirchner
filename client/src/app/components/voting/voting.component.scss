@@ -4,37 +4,72 @@
   border: none;
   box-shadow: none;
   position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+
+  @media (max-width: 768px) {
+    min-height: 100%;
+  }
 
   h3 {
     margin-bottom: 12px;
     font-size: 18px;
+    flex-shrink: 0;
   }
 }
 
 // Solapas de información
 .board-info-tabs {
   display: flex;
-  gap: 8px;
-  margin-bottom: 16px;
+  gap: 6px;
+  margin-bottom: 12px;
   justify-content: center;
+  flex-wrap: wrap;
+  
+  @media (max-width: 768px) {
+    gap: 4px;
+    margin-bottom: 8px;
+  }
 }
 
 .info-tab {
   position: relative;
   
   .tab-trigger {
-    padding: 10px 16px;
+    padding: 8px 12px;
     background: var(--color-bg-tertiary);
     border: 2px solid var(--color-border);
     border-radius: 8px;
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s;
+    touch-action: manipulation;
+    user-select: none;
+    white-space: nowrap;
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    @media (max-width: 768px) {
+      padding: 8px 10px;
+      font-size: 11px;
+      min-height: 36px;
+    }
 
     &:hover {
       background: var(--color-bg-secondary);
       border-color: var(--color-libertario);
+    }
+
+    &.active {
+      background: var(--color-libertario);
+      border-color: var(--color-libertario);
+      color: white;
     }
   }
 
@@ -53,6 +88,13 @@
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.2s, transform 0.2s;
+
+    @media (max-width: 768px) {
+      padding: 10px 12px;
+      white-space: normal;
+      min-width: 150px;
+      max-width: 200px;
+    }
 
     &.active {
       opacity: 1;
@@ -385,28 +427,147 @@
 }
 
 @media (max-width: 768px) {
-  .government-roles {
-    flex-direction: column;
-    gap: 12px;
+  .voting-container {
+    padding: 8px;
+    
+    h3 {
+      font-size: 16px;
+      margin-bottom: 10px;
+    }
+  }
 
-    .connector {
-      transform: rotate(90deg);
+  .board-info-tabs {
+    margin-bottom: 10px;
+  }
+
+  .government-proposal {
+    padding: 10px;
+    margin-bottom: 12px;
+
+    .proposal-header h4 {
+      font-size: 14px;
+    }
+
+    .government-roles {
+      flex-direction: column;
+      gap: 10px;
+
+      .connector {
+        transform: rotate(90deg);
+        font-size: 16px;
+      }
+
+      .role-item {
+        padding: 8px 12px;
+        gap: 6px;
+
+        .role-icon {
+          font-size: 20px;
+        }
+
+        .role-info {
+          .role-label {
+            font-size: 9px;
+          }
+
+          .role-name {
+            font-size: 13px;
+          }
+        }
+      }
+    }
+  }
+
+  .voting-instructions {
+    p {
+      font-size: 14px;
+      margin: 6px 0;
     }
   }
 
   .vote-buttons {
     grid-template-columns: 1fr;
+    gap: 10px;
+    margin-top: 12px;
   }
 
   .vote-btn {
-    padding: 24px;
+    padding: 20px 16px;
+    min-height: 80px;
 
     .vote-icon {
-      font-size: 36px;
+      font-size: 32px;
     }
 
     .vote-text {
-      font-size: 24px;
+      font-size: 20px;
+    }
+
+    .vote-subtitle {
+      font-size: 11px;
+    }
+  }
+
+  .vote-status {
+    .voted-indicator {
+      padding: 12px 20px;
+      gap: 10px;
+
+      .indicator-icon {
+        font-size: 28px;
+      }
+
+      .indicator-text {
+        font-size: 16px;
+      }
+    }
+  }
+
+  .voting-status {
+    gap: 12px;
+    margin-top: 12px;
+
+    h4 {
+      font-size: 13px;
+    }
+  }
+
+  .voted-players-section,
+  .pending-players-section {
+    padding: 10px;
+  }
+
+  .voted-players-list,
+  .pending-players-list {
+    gap: 6px;
+  }
+
+  .voted-player-item,
+  .pending-player-item {
+    padding: 6px 8px;
+    font-size: 12px;
+
+    .vote-icon-small {
+      font-size: 14px;
+    }
+  }
+
+  .continue-section {
+    padding: 16px;
+    margin-top: 16px;
+
+    .btn-large {
+      padding: 12px 24px;
+      font-size: 15px;
+      min-height: 48px;
+      width: 100%;
+    }
+  }
+
+  .voting-info {
+    p {
+      font-size: 13px;
+      margin: 3px 0;
     }
   }
 }

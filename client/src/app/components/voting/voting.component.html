@@ -1,8 +1,8 @@
 <div class="voting-container" *ngIf="gameState$ | async as gameState">
   <!-- Solapas de información del tablero -->
   <div class="board-info-tabs">
-    <div class="info-tab" (mouseenter)="showTab('policies')" (mouseleave)="hideTab()">
-      <div class="tab-trigger">
+    <div class="info-tab" (click)="showTab('policies')" (mouseenter)="showTab('policies')" (mouseleave)="hideTab()">
+      <div class="tab-trigger" [class.active]="activeTab === 'policies'">
         📊 Políticas
       </div>
       <div class="tab-content" [class.active]="activeTab === 'policies'">
@@ -19,8 +19,8 @@
       </div>
     </div>
 
-    <div class="info-tab" (mouseenter)="showTab('players')" (mouseleave)="hideTab()">
-      <div class="tab-trigger">
+    <div class="info-tab" (click)="showTab('players')" (mouseenter)="showTab('players')" (mouseleave)="hideTab()">
+      <div class="tab-trigger" [class.active]="activeTab === 'players'">
         👥 Jugadores
       </div>
       <div class="tab-content" [class.active]="activeTab === 'players'">
@@ -31,8 +31,8 @@
       </div>
     </div>
 
-    <div class="info-tab" (mouseenter)="showTab('rejections')" (mouseleave)="hideTab()">
-      <div class="tab-trigger">
+    <div class="info-tab" (click)="showTab('rejections')" (mouseenter)="showTab('rejections')" (mouseleave)="hideTab()">
+      <div class="tab-trigger" [class.active]="activeTab === 'rejections'">
         🗳️ Rechazos
       </div>
       <div class="tab-content" [class.active]="activeTab === 'rejections'">
@@ -45,8 +45,8 @@
       </div>
     </div>
 
-    <div class="info-tab" (mouseenter)="showTab('deck')" (mouseleave)="hideTab()">
-      <div class="tab-trigger">
+    <div class="info-tab" (click)="showTab('deck')" (mouseenter)="showTab('deck')" (mouseleave)="hideTab()">
+      <div class="tab-trigger" [class.active]="activeTab === 'deck'">
         🃏 Mazo
       </div>
       <div class="tab-content" [class.active]="activeTab === 'deck'">

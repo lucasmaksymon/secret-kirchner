@@ -43,11 +43,17 @@ export class VotingComponent implements OnInit, OnDestroy {
   }
 
   showTab(tab: string): void {
-    this.activeTab = tab;
+    // En móvil, toggle del tab (click para abrir/cerrar)
+    if (this.activeTab === tab) {
+      this.activeTab = null;
+    } else {
+      this.activeTab = tab;
+    }
   }
 
   hideTab(): void {
-    this.activeTab = null;
+    // Solo ocultar si no es un click directo (mantener para desktop hover)
+    // En móvil se maneja con showTab
   }
 
   canVote(): boolean {
